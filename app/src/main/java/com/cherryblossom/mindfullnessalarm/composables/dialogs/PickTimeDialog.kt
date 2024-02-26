@@ -25,49 +25,50 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.cherryblossom.mindfullnessalarm.R
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
+import com.cherryblossom.mindfullnessalarm.ui.theme.Typography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PickTimeDialog(text: String, onDismissRequest: () -> Unit, onAcceptRequest: (hour: Int, minute: Int) -> Unit) {
-    Dialog(onDismissRequest = { onDismissRequest() }) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(),
-            shape = MaterialTheme.shapes.extraLarge,
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            )
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth().padding(24.dp)
-            ) {
-                Text(text = text,
-                    textAlign = TextAlign.Start,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)
+        Dialog(onDismissRequest = { onDismissRequest() }) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shape = MaterialTheme.shapes.extraLarge,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                 )
-                val state = rememberTimePickerState(initialHour = 11, initialMinute = 13)
-                TimeChooser(timePickerState = state, modifier = Modifier.padding(bottom = 24.dp))
-                Row(
-                    horizontalArrangement = Arrangement.End,
-                    modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth().padding(24.dp)
                 ) {
-                    TextButton(
-                        onClick = { onDismissRequest() }
+                    Text(text = text,
+                        textAlign = TextAlign.Start,
+                        style = Typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)
+                    )
+                    val state = rememberTimePickerState(initialHour = 11, initialMinute = 13)
+                    TimeChooser(timePickerState = state, modifier = Modifier.padding(bottom = 24.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(stringResource(R.string.cancel_timer_dialog))
-                    }
-                    TextButton(
-                        onClick = { onAcceptRequest(state.hour, state.minute) }
-                    ) {
-                        Text(stringResource(R.string.accept_timer_dialog))
+                        TextButton(
+                            onClick = { onDismissRequest() }
+                        ) {
+                            Text(stringResource(R.string.cancel_timer_dialog))
+                        }
+                        TextButton(
+                            onClick = { onAcceptRequest(state.hour, state.minute) }
+                        ) {
+                            Text(stringResource(R.string.accept_timer_dialog))
+                        }
                     }
                 }
             }
         }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,7 +82,7 @@ fun TimeChooser(timePickerState: TimePickerState, modifier: Modifier = Modifier)
 @Composable
 fun dialogPreview() {
     MindfullnessAlarmTheme {
-        PickTimeDialog(stringResource(R.string.set_earliest_time),
+        PickTimeDialog(stringResource(R.string.set_latest_time),
             onDismissRequest = fun () {},
             onAcceptRequest = fun (a: Int, b: Int) {})
     }
