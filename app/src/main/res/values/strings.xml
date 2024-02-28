@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Mindfullness Alarm</string>
+    <string name="app_name">Mindfulness Reminder</string>
     <string name="set_earliest_time">Set earliest reminder time</string>
     <string name="set_latest_time">Set latest reminder time</string>
     <string name="cancel_timer_dialog">Cancel</string>
