@@ -74,7 +74,7 @@ fun ScreenHost() {
             text = "09:00",
             label = stringResource(R.string.set_earliest_time),
             onClick = { startTimeDialogVisible = !startTimeDialogVisible },
-            modifier = Modifier.clip(RoundedCornerShape(16.dp))
+            modifier = Modifier
                 .fillMaxWidth()
         )
         if (startTimeDialogVisible) {
