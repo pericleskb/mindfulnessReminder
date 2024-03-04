@@ -24,12 +24,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.cherryblossom.mindfullnessalarm.R
+import com.cherryblossom.mindfullnessalarm.ui.TimeOfDay
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
 import com.cherryblossom.mindfullnessalarm.ui.theme.Typography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PickTimeDialog(text: String, onDismissRequest: () -> Unit, onAcceptRequest: (hour: Int, minute: Int) -> Unit) {
+fun PickTimeDialog(label: String,
+                   onDismissRequest: () -> Unit,
+                   onAcceptRequest: (hour: Int, minute: Int) -> Unit,
+                   timeOfDay: TimeOfDay
+) {
         Dialog(onDismissRequest = { onDismissRequest() }) {
             Card(
                 modifier = Modifier
@@ -43,13 +48,17 @@ fun PickTimeDialog(text: String, onDismissRequest: () -> Unit, onAcceptRequest: 
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth().padding(24.dp)
                 ) {
-                    Text(text = text,
+                    Text(text = label,
                         textAlign = TextAlign.Start,
                         style = Typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)
                     )
-                    val state = rememberTimePickerState(initialHour = 11, initialMinute = 13)
+                    val state = rememberTimePickerState(
+                        initialHour = timeOfDay.hour,
+                        initialMinute = timeOfDay.minute,
+                        is24Hour = true
+                    )
                     TimeChooser(timePickerState = state, modifier = Modifier.padding(bottom = 24.dp))
                     Row(
                         horizontalArrangement = Arrangement.End,
@@ -84,6 +93,8 @@ fun dialogPreview() {
     MindfullnessAlarmTheme {
         PickTimeDialog(stringResource(R.string.set_latest_time),
             onDismissRequest = fun () {},
-            onAcceptRequest = fun (a: Int, b: Int) {})
+            onAcceptRequest = fun (a: Int, b: Int) {},
+            timeOfDay = TimeOfDay(10, 0)
+        )
     }
 }

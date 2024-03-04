@@ -12,11 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -40,15 +36,14 @@ import com.cherryblossom.mindfullnessalarm.ui.theme.Montserrat
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimeTextField(
-    text: String = "",
+    time: String = "",
     label: String = "",
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var value by rememberSaveable { mutableStateOf(text) }
     val interactionSource = remember { MutableInteractionSource() }
     BasicTextField(
-        value = value,
+        value = time,
         singleLine = true,
         readOnly = true,
         textStyle = TextStyle(
@@ -60,7 +55,7 @@ fun TimeTextField(
         ),
         interactionSource = interactionSource,
         cursorBrush = SolidColor(Color.White),
-        onValueChange = { newText -> value = newText },
+        onValueChange = { },
         enabled = false,
         modifier = if (label.isNotEmpty()) {
             modifier
@@ -68,7 +63,7 @@ fun TimeTextField(
                 // considered part of the text field.
                 .semantics(mergeDescendants = true) {}
                 .clip(RoundedCornerShape(39.dp))
-                .padding(top = 10.dp, bottom = 10.dp, start = 4.dp, end = 4.dp)
+                .padding(top = 12.dp, bottom = 10.dp, start = 4.dp, end = 4.dp)
                 .clickable(
                     interactionSource = interactionSource,
                     indication = rememberRipple(color = MaterialTheme.colorScheme.secondary))
@@ -84,7 +79,7 @@ fun TimeTextField(
             )
     ) { innerTextField ->
         OutlinedTextFieldDefaults.DecorationBox(
-            value = value,
+            value = time,
             innerTextField = innerTextField,
             enabled = true,
             singleLine = true,
@@ -117,7 +112,7 @@ fun TimeTextField(
 fun editText() {
     MindfullnessAlarmTheme {
         TimeTextField(
-            text = "09:00",
+            time = "09:00",
             label = stringResource(R.string.set_latest_time),
             {},
             modifier = Modifier
