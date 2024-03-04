@@ -19,4 +19,12 @@ class MainViewModel: ViewModel()  {
             )
         }
     }
+
+    fun endTimeChanged(hour: Int, minute: Int) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                endTime = TimeOfDay(hour, minute)
+            )
+        }
+    }
 }

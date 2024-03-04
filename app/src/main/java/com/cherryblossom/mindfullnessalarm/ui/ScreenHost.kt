@@ -44,6 +44,14 @@ fun ScreenHost(viewModel: MainViewModel = viewModel()) {
             modifier = Modifier
                 .fillMaxWidth()
         )
+        Spacer(modifier = Modifier.fillMaxHeight(0.05f))
+        TimeTextField(
+            time = mainUiState.endTime.toString(),
+            label = stringResource(R.string.set_latest_time),
+            onClick = { endTimeDialogVisible = !endTimeDialogVisible },
+            modifier = Modifier
+                .fillMaxWidth()
+        )
         if (startTimeDialogVisible) {
             PickTimeDialog(
                 stringResource(R.string.set_earliest_time),
@@ -53,6 +61,17 @@ fun ScreenHost(viewModel: MainViewModel = viewModel()) {
                     startTimeDialogVisible = false
                 },
                 mainUiState.startTime
+            )
+        }
+        if (endTimeDialogVisible) {
+            PickTimeDialog(
+                stringResource(R.string.set_latest_time),
+                onDismissRequest = { endTimeDialogVisible = false },
+                onAcceptRequest = fun (hour: Int, minute: Int) {
+                    viewModel.endTimeChanged(hour, minute)
+                    endTimeDialogVisible = false
+                },
+                mainUiState.endTime
             )
         }
     }
