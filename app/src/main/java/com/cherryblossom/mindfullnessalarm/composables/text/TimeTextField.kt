@@ -82,7 +82,7 @@ fun TimeTextField(
                 // Merge semantics at the beginning of the modifier chain to ensure padding is
                 // considered part of the text field.
                 .semantics(mergeDescendants = true) {}
-                .clip(RoundedCornerShape(39.dp))
+                .clip(RoundedCornerShape(42.dp, 42.dp, 39.dp, 39.dp))
                 .padding(top = 12.dp, bottom = 10.dp, start = 4.dp, end = 4.dp)
                 .clickable(
                     interactionSource = interactionSource,

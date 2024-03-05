@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -49,10 +50,14 @@ fun ScreenHost(viewModel: MainViewModel = viewModel()) {
                 .fillMaxWidth()
         )
         Spacer(modifier = Modifier.fillMaxHeight(0.05f))
+        val focusManager = LocalFocusManager.current
         TimeTextField(
             time = mainUiState.endTime.toString(),
             label = stringResource(R.string.set_latest_time),
-            onClick = { endTimeDialogVisible = !endTimeDialogVisible },
+            onClick = {
+                startTimeDialogVisible = !startTimeDialogVisible
+                focusManager.clearFocus()
+                      },
             enabled = false,
             readOnly = true,
             modifier = Modifier
@@ -62,7 +67,10 @@ fun ScreenHost(viewModel: MainViewModel = viewModel()) {
         TimeTextField(
             time = mainUiState.numberOfReminders.toString(),
             label = stringResource(R.string.choose_number_of_reminders),
-            onClick = {  },
+            onClick = {
+                endTimeDialogVisible = !endTimeDialogVisible
+                focusManager.clearFocus()
+            },
             onValueChange = fun (value: String) { viewModel.numberOfRemindersChanged(value) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier
