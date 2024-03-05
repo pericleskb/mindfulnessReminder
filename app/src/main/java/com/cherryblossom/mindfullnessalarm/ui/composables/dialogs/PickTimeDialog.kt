@@ -1,4 +1,4 @@
-package com.cherryblossom.mindfullnessalarm.composables.dialogs
+package com.cherryblossom.mindfullnessalarm.ui.composables.dialogs
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement

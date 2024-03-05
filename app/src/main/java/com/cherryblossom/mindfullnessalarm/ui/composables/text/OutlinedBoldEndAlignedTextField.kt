@@ -1,4 +1,4 @@
-package com.cherryblossom.mindfullnessalarm.composables.text
+package com.cherryblossom.mindfullnessalarm.ui.composables.text
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -23,27 +23,27 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.text.isDigitsOnly
 import com.cherryblossom.mindfullnessalarm.R
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
 import com.cherryblossom.mindfullnessalarm.ui.theme.Montserrat
 
 /*
-    Edited solution from this post https://stackoverflow.com/a/76804660/4880400
+    Based solution on this post https://stackoverflow.com/a/76804660/4880400
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TimeTextField(
-    time: String = "",
+fun OutlinedBoldEndAlignedTextField(
+    text: String = "",
     label: String = "",
     onClick: () -> Unit,
     onValueChange: (String) -> Unit = {},
@@ -56,7 +56,10 @@ fun TimeTextField(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     BasicTextField(
-        value = time,
+        value = TextFieldValue(
+            text = text,
+            selection = TextRange(text.length)
+        ),
         singleLine = true,
         readOnly = readOnly,
         textStyle = TextStyle(
@@ -68,7 +71,7 @@ fun TimeTextField(
         ),
         interactionSource = interactionSource,
         cursorBrush = SolidColor(Color.White),
-        onValueChange = { onValueChange(it) },
+        onValueChange = { onValueChange(it.text) },
         enabled = enabled,
         keyboardOptions = keyboardOptions.copy(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(
@@ -99,7 +102,7 @@ fun TimeTextField(
             )
     ) { innerTextField ->
         OutlinedTextFieldDefaults.DecorationBox(
-            value = time,
+            value = text,
             innerTextField = innerTextField,
             enabled = true,
             singleLine = true,
@@ -133,10 +136,10 @@ fun TimeTextField(
 @Composable
 fun editText() {
     MindfullnessAlarmTheme {
-        TimeTextField(
-            time = "09:00",
+        OutlinedBoldEndAlignedTextField(
+            text = "09:00",
             label = stringResource(R.string.set_latest_time),
-            {},
+            onClick = {},
             modifier = Modifier
         )
     }
