@@ -63,7 +63,7 @@ fun ScreenHost(viewModel: MainViewModel = viewModel()) {
             time = mainUiState.numberOfReminders.toString(),
             label = stringResource(R.string.choose_number_of_reminders),
             onClick = {  },
-            onValueChange = fun (value: Int) { viewModel.numberOfRemindersChanged(value) },
+            onValueChange = fun (value: String) { viewModel.numberOfRemindersChanged(value) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier
                 .fillMaxWidth()

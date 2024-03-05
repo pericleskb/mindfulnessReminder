@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
@@ -45,7 +46,7 @@ fun TimeTextField(
     time: String = "",
     label: String = "",
     onClick: () -> Unit,
-    onValueChange: (Int) -> Unit = {},
+    onValueChange: (String) -> Unit = {},
     enabled: Boolean = true,
     readOnly: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -53,6 +54,7 @@ fun TimeTextField(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     BasicTextField(
         value = time,
         singleLine = true,
@@ -66,13 +68,13 @@ fun TimeTextField(
         ),
         interactionSource = interactionSource,
         cursorBrush = SolidColor(Color.White),
-        onValueChange = { if (it.isNotEmpty() && it.isDigitsOnly()) onValueChange(it.toInt()) },
+        onValueChange = { onValueChange(it) },
         enabled = enabled,
         keyboardOptions = keyboardOptions.copy(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(
             onDone = {
                 keyboardController?.hide()
-
+                focusManager.clearFocus()
             }
         ),
         modifier = if (label.isNotEmpty()) {
@@ -115,7 +117,9 @@ fun TimeTextField(
                     enabled = true,
                     isError = false,
                     interactionSource = interactionSource,
-                    colors = OutlinedTextFieldDefaults.colors(),
+                    colors = OutlinedTextFieldDefaults.colors().copy(
+                        unfocusedIndicatorColor = MaterialTheme.colorScheme.inversePrimary
+                    ),
                     shape = RoundedCornerShape(16.dp),
                     focusedBorderThickness = 5.dp,
                     unfocusedBorderThickness = 5.dp
