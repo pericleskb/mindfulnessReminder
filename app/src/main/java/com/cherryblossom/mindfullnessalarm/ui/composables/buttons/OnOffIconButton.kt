@@ -3,6 +3,9 @@ package com.cherryblossom.mindfullnessalarm.ui.composables.buttons
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -18,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.cherryblossom.mindfullnessalarm.R
 
 @Composable
-fun OnOffIconButton() {
+fun OnOffIconButton(modifier: Modifier = Modifier) {
     var enabled by remember { mutableStateOf(false) }
     val color = animateColorAsState(if (enabled) colorResource(R.color.enabled) else colorResource(R.color.disabled),
         label = "icon color"
@@ -29,11 +32,10 @@ fun OnOffIconButton() {
             Icon(
                 painter = painterResource(R.drawable.on_icon),
                 contentDescription = stringResource(R.string.enable_description),
-                modifier = Modifier.fillMaxSize(),
-                tint = color.value
+                tint = color.value,
+                modifier = Modifier.fillMaxSize()
             )
         },
-        modifier = Modifier.defaultMinSize(56.dp)
-            .fillMaxSize(fraction = 0.3f)
+        modifier = modifier
     )
 }
