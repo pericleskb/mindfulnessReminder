@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -17,15 +19,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.text.isDigitsOnly
 import com.cherryblossom.mindfullnessalarm.R
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
 import com.cherryblossom.mindfullnessalarm.ui.theme.Montserrat
@@ -39,24 +45,36 @@ fun TimeTextField(
     time: String = "",
     label: String = "",
     onClick: () -> Unit,
+    onValueChange: (Int) -> Unit = {},
+    enabled: Boolean = true,
+    readOnly: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    val keyboardController = LocalSoftwareKeyboardController.current
     BasicTextField(
         value = time,
         singleLine = true,
-        readOnly = true,
+        readOnly = readOnly,
         textStyle = TextStyle(
             color = MaterialTheme.colorScheme.primary,
             fontFamily = Montserrat,
             fontWeight = FontWeight.W500,
             fontSize = 36.sp,
-            textAlign = TextAlign.End
+            textAlign = TextAlign.End,
         ),
         interactionSource = interactionSource,
         cursorBrush = SolidColor(Color.White),
-        onValueChange = { },
-        enabled = false,
+        onValueChange = { if (it.isNotEmpty() && it.isDigitsOnly()) onValueChange(it.toInt()) },
+        enabled = enabled,
+        keyboardOptions = keyboardOptions.copy(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                keyboardController?.hide()
+
+            }
+        ),
         modifier = if (label.isNotEmpty()) {
             modifier
                 // Merge semantics at the beginning of the modifier chain to ensure padding is

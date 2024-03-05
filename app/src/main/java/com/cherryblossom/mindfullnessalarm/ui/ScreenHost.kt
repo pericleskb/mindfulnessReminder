@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cherryblossom.mindfullnessalarm.R
@@ -34,13 +36,15 @@ fun ScreenHost(viewModel: MainViewModel = viewModel()) {
         verticalArrangement = Arrangement.Top,
         modifier = Modifier.padding(16.dp).fillMaxSize()
     ) {
-        Spacer(modifier = Modifier.fillMaxHeight(0.1f))
+        Spacer(modifier = Modifier.fillMaxHeight(0.05f))
         var startTimeDialogVisible by remember { mutableStateOf(false) }
         var endTimeDialogVisible by remember { mutableStateOf(false) }
         TimeTextField(
             time = mainUiState.startTime.toString(),
             label = stringResource(R.string.set_earliest_time),
             onClick = { startTimeDialogVisible = !startTimeDialogVisible },
+            enabled = false,
+            readOnly = true,
             modifier = Modifier
                 .fillMaxWidth()
         )
@@ -49,6 +53,18 @@ fun ScreenHost(viewModel: MainViewModel = viewModel()) {
             time = mainUiState.endTime.toString(),
             label = stringResource(R.string.set_latest_time),
             onClick = { endTimeDialogVisible = !endTimeDialogVisible },
+            enabled = false,
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.fillMaxHeight(0.05f))
+        TimeTextField(
+            time = mainUiState.numberOfReminders.toString(),
+            label = stringResource(R.string.choose_number_of_reminders),
+            onClick = {  },
+            onValueChange = fun (value: Int) { viewModel.numberOfRemindersChanged(value) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier
                 .fillMaxWidth()
         )
