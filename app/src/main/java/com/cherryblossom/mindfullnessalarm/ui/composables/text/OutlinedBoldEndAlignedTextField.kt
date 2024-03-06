@@ -49,6 +49,8 @@ fun OutlinedBoldEndAlignedTextField(
     onValueChange: (String) -> Unit = {},
     enabled: Boolean = true,
     readOnly: Boolean = false,
+    isError: Boolean = false,
+    errorMessage: String = "",
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     modifier: Modifier = Modifier
 ) {
@@ -66,8 +68,8 @@ fun OutlinedBoldEndAlignedTextField(
             color = MaterialTheme.colorScheme.primary,
             fontFamily = Montserrat,
             fontWeight = FontWeight.W500,
-            fontSize = 36.sp,
-            textAlign = TextAlign.End,
+            fontSize = 24.sp,
+            textAlign = TextAlign.Start,
         ),
         interactionSource = interactionSource,
         cursorBrush = SolidColor(Color.White),
@@ -106,26 +108,27 @@ fun OutlinedBoldEndAlignedTextField(
             innerTextField = innerTextField,
             enabled = true,
             singleLine = true,
+            isError = isError,
             interactionSource = interactionSource,
             visualTransformation = VisualTransformation.None,
             label = {
                 Text(
                     text = label,
                     color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 16.sp
+                    fontSize = 14.sp
                 )
             },
             container = {
                 OutlinedTextFieldDefaults.ContainerBox(
                     enabled = true,
-                    isError = false,
+                    isError = isError,
                     interactionSource = interactionSource,
                     colors = OutlinedTextFieldDefaults.colors().copy(
                         unfocusedIndicatorColor = MaterialTheme.colorScheme.inversePrimary
                     ),
                     shape = RoundedCornerShape(16.dp),
-                    focusedBorderThickness = 5.dp,
-                    unfocusedBorderThickness = 5.dp
+                    focusedBorderThickness = 3.dp,
+                    unfocusedBorderThickness = 3.dp
                 )
             }
         )
