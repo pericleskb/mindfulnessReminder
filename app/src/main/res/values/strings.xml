@@ -7,8 +7,8 @@
     <string name="choose_number_of_reminders">Reminders per day (1–10)</string>
     <string name="enable_description">Enable or disable reminders</string>
     <string name="app_description">This app is designed to help you reduce the distance between
-        your mindfulness practice and the rest of your life. Through your day, a discrete bell will
-        ring in irregular intervals, to remind you to pay attention to your experience, in the same
+        your mindfulness practice and the rest of your life. Throughout your day, a discrete bell will
+        ring in irregular intervals, to remind you to pay attention to your experience in the same
         way that you do while meditating.</string>
     <string name="guidelines">Select the timeframe for your reminders</string>
 </resources>

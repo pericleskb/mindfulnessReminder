@@ -7,7 +7,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +31,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,79 +45,67 @@ import com.cherryblossom.mindfullnessalarm.ui.composables.text.OutlinedBoldEndAl
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
 import com.cherryblossom.mindfullnessalarm.ui.theme.Montserrat
 
-
 @Composable
 fun ScreenHost(viewModel: MainViewModel = viewModel(), modifier: Modifier = Modifier) {
     val mainUiState by viewModel.uiState.collectAsState()
-    Column (
+    val focusManager = LocalFocusManager.current
+    val interactionSource = remember { MutableInteractionSource() }
+    Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
+        verticalArrangement = Arrangement.Top,
+        modifier = Modifier.padding(horizontal = 12.dp)
+            .fillMaxWidth()
+            .fillMaxHeight(0.7f)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                focusManager.clearFocus()
+            }
     ) {
-        val focusManager = LocalFocusManager.current
-        val interactionSource = remember { MutableInteractionSource() }
         Spacer(modifier = Modifier.fillMaxHeight(0.05f))
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top,
-            modifier = Modifier.padding(horizontal = 12.dp)
-                .fillMaxWidth()
-                .fillMaxHeight(0.7f)
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null
-                ) {
-                    focusManager.clearFocus()
-                }
-        ) {
-            Text(
-                text = stringResource(R.string.app_description),
-                style = TextStyle(
-                    fontFamily = Montserrat,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.W500,
-                    lineHeight = 22.sp
-                ),
-                modifier = Modifier.fillMaxWidth().align(Alignment.Start)
-                    .border(2.dp, MaterialTheme.colorScheme.onSurfaceVariant, RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.inversePrimary, RoundedCornerShape(8.dp))//todo add brush
-                    .padding(16.dp)
-            )
-            Spacer(modifier = Modifier.fillMaxHeight(0.05f))
-            Text(
-                text = stringResource(R.string.guidelines),
-                modifier = Modifier.fillMaxWidth().align(Alignment.Start)
-            )
-            Spacer(modifier = Modifier.fillMaxHeight(0.025f))
-            TextFields(
-                startTime = mainUiState.startTime,
-                endTime = mainUiState.endTime,
-                numOfReminders = mainUiState.numberOfReminders,
-                startTimeChanged = { hour: Int, minute: Int ->
-                    viewModel.startTimeChanged(
-                        hour,
-                        minute
-                    )
-                },
-                endTimeChanged = { hour: Int, minute: Int ->
-                    viewModel.endTimeChanged(
-                        hour,
-                        minute
-                    )
-                },
-                numOfRemindersChanged = {viewModel.numberOfRemindersChanged(it)}
-            )
-        }
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            OnOffIconButton(
-                isEnabled = mainUiState.isEnabled,
-                onClick = { viewModel.enabled(it) },
-                Modifier.fillMaxSize(0.6f).aspectRatio(1f, matchHeightConstraintsFirst = true))
-        }
+        DescriptionText(modifier = Modifier.fillMaxWidth()
+            .align(Alignment.Start)
+            .border(2.dp, MaterialTheme.colorScheme.onSurfaceVariant, RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.inversePrimary, RoundedCornerShape(8.dp))//todo add brush
+            .padding(16.dp)
+        )
+        Spacer(modifier = Modifier.fillMaxHeight(0.05f))
+        TextFields(
+            startTime = mainUiState.startTime,
+            endTime = mainUiState.endTime,
+            numOfReminders = mainUiState.numberOfReminders,
+            startTimeChanged = { hour: Int, minute: Int ->
+                viewModel.startTimeChanged(
+                    hour,
+                    minute
+                )
+            },
+            endTimeChanged = { hour: Int, minute: Int ->
+                viewModel.endTimeChanged(
+                    hour,
+                    minute
+                )
+            },
+            numOfRemindersChanged = {viewModel.numberOfRemindersChanged(it)},
+            modifier = Modifier.fillMaxWidth().align(Alignment.Start)
+        )
     }
+}
+
+@Composable
+fun DescriptionText(modifier: Modifier = Modifier) {
+    Text(
+        text = stringResource(R.string.app_description),
+        style = TextStyle(
+            fontFamily = Montserrat,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.W500,
+            lineHeight = 22.sp,
+            textAlign = TextAlign.Center
+        ),
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -133,20 +121,20 @@ fun TextFields(
     var startTimeDialogVisible by remember { mutableStateOf(false) }
     var endTimeDialogVisible by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
-    OutlinedTextField(
-        value = startTime.toString(),
+    Text(
+        text = stringResource(R.string.guidelines),
+        modifier = modifier
+    )
+    Spacer(modifier = Modifier.fillMaxHeight(0.025f))
+    OutlinedBoldEndAlignedTextField(
+        text = startTime.toString(),
         onValueChange = {},
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                startTimeDialogVisible = !startTimeDialogVisible
-                focusManager.clearFocus()
-            },
-        label = { Text (
-            text = stringResource(R.string.set_earliest_time),
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 16.sp
-            )
+            .fillMaxWidth(),
+        label = stringResource(R.string.set_earliest_time),
+        onClick = {
+            startTimeDialogVisible = !startTimeDialogVisible
+            focusManager.clearFocus()
         },
         enabled = false,
         readOnly = true
