@@ -21,13 +21,17 @@ import androidx.compose.ui.unit.dp
 import com.cherryblossom.mindfullnessalarm.R
 
 @Composable
-fun OnOffIconButton(modifier: Modifier = Modifier) {
-    var enabled by remember { mutableStateOf(false) }
-    val color = animateColorAsState(if (enabled) colorResource(R.color.enabled) else colorResource(R.color.disabled),
+fun OnOffIconButton(
+    isEnabled: Boolean = false,
+    onClick: (Boolean) -> Unit,
+    modifier: Modifier = Modifier) {
+    val color = animateColorAsState(if (isEnabled) colorResource(R.color.enabled) else colorResource(R.color.disabled),
         label = "icon color"
     )
     IconButton(
-        onClick = {enabled = !enabled},
+        onClick = {
+            onClick(!isEnabled)
+        },
         content = {
             Icon(
                 painter = painterResource(R.drawable.on_icon),

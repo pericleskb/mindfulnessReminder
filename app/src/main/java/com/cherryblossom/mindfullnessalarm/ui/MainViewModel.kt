@@ -36,4 +36,12 @@ class MainViewModel: ViewModel()  {
             )
         }
     }
+
+    fun enabled(isEnabled: Boolean): Unit {
+        _uiState.update { currentState ->
+            currentState.copy(
+                isEnabled = isEnabled
+            )
+        }
+    }
 }
