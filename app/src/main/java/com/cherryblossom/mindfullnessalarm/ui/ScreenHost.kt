@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,18 +29,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cherryblossom.mindfullnessalarm.R
 import com.cherryblossom.mindfullnessalarm.models.TimeOfDay
-import com.cherryblossom.mindfullnessalarm.ui.composables.buttons.OnOffIconButton
 import com.cherryblossom.mindfullnessalarm.ui.composables.dialogs.PickTimeDialog
-import com.cherryblossom.mindfullnessalarm.ui.composables.text.OutlinedBoldEndAlignedTextField
+import com.cherryblossom.mindfullnessalarm.ui.composables.text.AdjustableBorderOutlinedTextField
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
 import com.cherryblossom.mindfullnessalarm.ui.theme.Montserrat
 
@@ -126,7 +122,41 @@ fun TextFields(
         modifier = modifier
     )
     Spacer(modifier = Modifier.fillMaxHeight(0.025f))
-    OutlinedBoldEndAlignedTextField(
+    TimeTextField(
+        startTime = startTime,
+        startTimeChanged = startTimeChanged,
+        modifier = modifier
+    )
+    Spacer(modifier = Modifier.fillMaxHeight(0.05f))
+    TimeTextField(
+        startTime = endTime,
+        startTimeChanged = endTimeChanged,
+        modifier = modifier
+    )
+    Spacer(modifier = Modifier.fillMaxHeight(0.05f))
+    AdjustableBorderOutlinedTextField(
+        text = numOfReminders,
+        label = stringResource(R.string.choose_number_of_reminders),
+        onClick = {
+            endTimeDialogVisible = !endTimeDialogVisible
+        },
+        onValueChange = fun (value: String) { numOfRemindersChanged(value) },
+        isError = !isNumOfRemindersValid(numOfReminders),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier
+            .fillMaxWidth()
+    )
+}
+
+@Composable
+fun TimeTextField(
+    startTime: TimeOfDay,
+    startTimeChanged: (Int, Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val focusManager = LocalFocusManager.current
+    var startTimeDialogVisible by remember { mutableStateOf(false) }
+    AdjustableBorderOutlinedTextField(
         text = startTime.toString(),
         onValueChange = {},
         modifier = Modifier
@@ -139,32 +169,6 @@ fun TextFields(
         enabled = false,
         readOnly = true
     )
-    Spacer(modifier = Modifier.fillMaxHeight(0.05f))
-    OutlinedBoldEndAlignedTextField(
-        text = endTime.toString(),
-        label = stringResource(R.string.set_latest_time),
-        onClick = {
-            endTimeDialogVisible = !endTimeDialogVisible
-            focusManager.clearFocus()
-        },
-        enabled = false,
-        readOnly = true,
-        modifier = Modifier
-            .fillMaxWidth()
-    )
-    Spacer(modifier = Modifier.fillMaxHeight(0.05f))
-    OutlinedBoldEndAlignedTextField(
-        text = numOfReminders,
-        label = stringResource(R.string.choose_number_of_reminders),
-        onClick = {
-            endTimeDialogVisible = !endTimeDialogVisible
-        },
-        onValueChange = fun (value: String) { numOfRemindersChanged(value) },
-        isError = !isNumOfRemindersValid(numOfReminders),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier
-            .fillMaxWidth()
-    )
     if (startTimeDialogVisible) {
         PickTimeDialog(
             stringResource(R.string.set_earliest_time),
@@ -174,17 +178,6 @@ fun TextFields(
                 startTimeDialogVisible = false
             },
             startTime
-        )
-    }
-    if (endTimeDialogVisible) {
-        PickTimeDialog(
-            stringResource(R.string.set_latest_time),
-            onDismissRequest = { endTimeDialogVisible = false },
-            onAcceptRequest = fun (hour: Int, minute: Int) {
-                endTimeChanged(hour, minute)
-                endTimeDialogVisible = false
-            },
-            endTime
         )
     }
 }
