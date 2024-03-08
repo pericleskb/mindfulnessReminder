@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,7 +53,8 @@ import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
 import com.cherryblossom.mindfullnessalarm.ui.theme.Montserrat
 
 @Composable
-fun ScreenHost(viewModel: MainViewModel = viewModel(), modifier: Modifier = Modifier) {
+fun ScreenHost(viewModel: MainViewModel = viewModel(),
+               modifier: Modifier = Modifier) {
     val mainUiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -69,33 +71,33 @@ fun ScreenHost(viewModel: MainViewModel = viewModel(), modifier: Modifier = Modi
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 12.dp)
     ) {
-        Spacer(modifier = Modifier.fillMaxHeight(0.05f))
+        Spacer(modifier = Modifier.height(32.dp))
         DescriptionText(modifier = Modifier.fillMaxWidth()
             .align(Alignment.Start)
             .border(2.dp, MaterialTheme.colorScheme.onSurfaceVariant, RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.inversePrimary, RoundedCornerShape(8.dp))//todo add brush
             .padding(16.dp)
         )
-        Spacer(modifier = Modifier.fillMaxHeight(0.05f))
+        Spacer(modifier = Modifier.height(32.dp))
         Text(
             text = stringResource(R.string.guidelines),
             modifier = modifier
         )
-        Spacer(modifier = Modifier.fillMaxHeight(0.025f))
+        Spacer(modifier = Modifier.height(16.dp))
         TimeTextField(
             time = mainUiState.startTime,
             timeChanged = {hour: Int, minute: Int -> viewModel.startTimeChanged(hour, minute)},
             stringResource(R.string.set_earliest_time),
             modifier = modifier
         )
-        Spacer(modifier = Modifier.fillMaxHeight(0.05f))
+        Spacer(modifier = Modifier.height(32.dp))
         TimeTextField(
             time = mainUiState.endTime,
             timeChanged = {hour: Int, minute: Int -> viewModel.endTimeChanged(hour, minute )},
             stringResource(R.string.set_latest_time),
             modifier = modifier
         )
-        Spacer(modifier = Modifier.fillMaxHeight(0.05f))
+        Spacer(modifier = Modifier.height(32.dp))
         NumberOfAlarmTextField(
             mainUiState.numberOfReminders,
             numOfRemindersChanged = {viewModel.numberOfRemindersChanged(it)}
@@ -130,7 +132,7 @@ fun TimeTextField(
     AdjustableBorderOutlinedTextField(
         text = time.toString(),
         onValueChange = {},
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth(),
         label = label,
         onClick = {
@@ -157,6 +159,7 @@ fun TimeTextField(
 fun NumberOfAlarmTextField(
     numOfReminders: String,
     numOfRemindersChanged: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var numberPickerVisible by remember { mutableStateOf(false) }
     AdjustableBorderOutlinedTextField(
@@ -170,13 +173,13 @@ fun NumberOfAlarmTextField(
         onValueChange = fun (value: String) { numOfRemindersChanged(value) },
         isError = !isNumOfRemindersValid(numOfReminders),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
     )
     if (numberPickerVisible) {
         Dialog(onDismissRequest = { numberPickerVisible = !numberPickerVisible }) {
             Card(
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = modifier.fillMaxWidth(0.8f),
                 shape = MaterialTheme.shapes.extraLarge,
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -189,9 +192,11 @@ fun NumberOfAlarmTextField(
 }
 
 @Composable
-fun NumberPickerComposable() {
+fun NumberPickerComposable(
+    modifier: Modifier
+) {
     AndroidView(
-        modifier = Modifier,
+        modifier = modifier,
         factory = { context ->
             NumberPicker(context).apply {
                 layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
