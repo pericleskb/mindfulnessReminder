@@ -5,14 +5,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -26,6 +31,7 @@ import androidx.compose.ui.window.Dialog
 import com.cherryblossom.mindfullnessalarm.R
 import com.cherryblossom.mindfullnessalarm.models.TimeOfDay
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
+import com.cherryblossom.mindfullnessalarm.ui.theme.Montserrat
 import com.cherryblossom.mindfullnessalarm.ui.theme.Typography
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,49 +41,47 @@ fun PickTimeDialog(label: String,
                    onAcceptRequest: (hour: Int, minute: Int) -> Unit,
                    timeOfDay: TimeOfDay
 ) {
-        Dialog(onDismissRequest = { onDismissRequest() }) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                shape = MaterialTheme.shapes.extraLarge,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                )
+    Dialog(onDismissRequest = { onDismissRequest() }) {
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 4.dp,
+        ) {
+            Column(verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth().padding(24.dp)
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth().padding(24.dp)
+                Text(text = label,
+                    textAlign = TextAlign.Start,
+                    style = Typography.labelLarge,
+                    fontFamily = Montserrat,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)
+                )
+                val state = rememberTimePickerState(
+                    initialHour = timeOfDay.hour,
+                    initialMinute = timeOfDay.minute,
+                    is24Hour = true
+                )
+                TimeChooser(timePickerState = state, modifier = Modifier.padding(bottom = 24.dp))
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = label,
-                        textAlign = TextAlign.Start,
-                        style = Typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)
-                    )
-                    val state = rememberTimePickerState(
-                        initialHour = timeOfDay.hour,
-                        initialMinute = timeOfDay.minute,
-                        is24Hour = true
-                    )
-                    TimeChooser(timePickerState = state, modifier = Modifier.padding(bottom = 24.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.End,
-                        modifier = Modifier.fillMaxWidth()
+                    TextButton(
+                        onClick = { onDismissRequest() }
                     ) {
-                        TextButton(
-                            onClick = { onDismissRequest() }
-                        ) {
-                            Text(stringResource(R.string.cancel_timer_dialog))
-                        }
-                        TextButton(
-                            onClick = { onAcceptRequest(state.hour, state.minute) }
-                        ) {
-                            Text(stringResource(R.string.accept_timer_dialog))
-                        }
+                        Text(stringResource(R.string.cancel_timer_dialog))
+                    }
+                    TextButton(
+                        onClick = { onAcceptRequest(state.hour, state.minute) }
+                    ) {
+                        Text(stringResource(R.string.accept_timer_dialog))
                     }
                 }
             }
         }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
