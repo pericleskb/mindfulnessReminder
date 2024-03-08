@@ -29,7 +29,7 @@ class MainViewModel: ViewModel()  {
         }
     }
 
-    fun numberOfRemindersChanged(num: String) {
+    fun numberOfRemindersChanged(num: Int) {
         _uiState.update { currentState ->
             currentState.copy(
                 numberOfReminders = num
