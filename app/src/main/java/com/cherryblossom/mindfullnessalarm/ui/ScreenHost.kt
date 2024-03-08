@@ -193,7 +193,7 @@ fun NumberOfAlarmTextField(
 
 @Composable
 fun NumberPickerComposable(
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
     AndroidView(
         modifier = modifier,
