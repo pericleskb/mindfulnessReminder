@@ -5,19 +5,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredWidth
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -71,12 +65,12 @@ fun PickTimeDialog(label: String,
                     TextButton(
                         onClick = { onDismissRequest() }
                     ) {
-                        Text(stringResource(R.string.cancel_timer_dialog))
+                        Text(text = stringResource(R.string.cancel_timer_dialog), fontFamily = Montserrat)
                     }
                     TextButton(
                         onClick = { onAcceptRequest(state.hour, state.minute) }
                     ) {
-                        Text(stringResource(R.string.accept_timer_dialog))
+                        Text(stringResource(R.string.accept_timer_dialog), fontFamily = Montserrat)
                     }
                 }
             }

@@ -11,4 +11,6 @@
         ring at irregular intervals, to remind you to pay attention to your experience in the same
         way that you do while meditating.</string>
     <string name="guidelines">Select the timeframe for your reminders</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
 </resources>

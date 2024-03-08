@@ -115,7 +115,8 @@ fun AdjustableBorderOutlinedTextField(
                 Text(
                     text = label,
                     color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    fontFamily = Montserrat
                 )
             },
             container = {

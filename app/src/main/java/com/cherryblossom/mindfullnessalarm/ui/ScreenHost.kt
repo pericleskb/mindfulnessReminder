@@ -1,17 +1,19 @@
 package com.cherryblossom.mindfullnessalarm.ui
 
-import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.content.res.Resources.Theme
+import android.os.Build
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import android.widget.NumberPicker
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,11 +22,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,7 +37,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +57,7 @@ import com.cherryblossom.mindfullnessalarm.ui.composables.dialogs.PickTimeDialog
 import com.cherryblossom.mindfullnessalarm.ui.composables.text.AdjustableBorderOutlinedTextField
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
 import com.cherryblossom.mindfullnessalarm.ui.theme.Montserrat
+import com.cherryblossom.mindfullnessalarm.ui.theme.Typography
 
 @Composable
 fun ScreenHost(viewModel: MainViewModel = viewModel(),
@@ -81,6 +88,7 @@ fun ScreenHost(viewModel: MainViewModel = viewModel(),
         Spacer(modifier = Modifier.height(32.dp))
         Text(
             text = stringResource(R.string.guidelines),
+            fontFamily = Montserrat,
             modifier = modifier
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -98,7 +106,7 @@ fun ScreenHost(viewModel: MainViewModel = viewModel(),
             modifier = modifier
         )
         Spacer(modifier = Modifier.height(32.dp))
-        NumberOfAlarmTextField(
+        NumberOfAlarmsTextField(
             mainUiState.numberOfReminders,
             numOfRemindersChanged = {viewModel.numberOfRemindersChanged(it)}
         )
@@ -156,7 +164,7 @@ fun TimeTextField(
 }
 
 @Composable
-fun NumberOfAlarmTextField(
+fun NumberOfAlarmsTextField(
     numOfReminders: String,
     numOfRemindersChanged: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -170,22 +178,73 @@ fun NumberOfAlarmTextField(
         onClick = {
             numberPickerVisible = !numberPickerVisible
         },
-        onValueChange = fun (value: String) { numOfRemindersChanged(value) },
-        isError = !isNumOfRemindersValid(numOfReminders),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        onValueChange = { },
         modifier = modifier
             .fillMaxWidth()
     )
     if (numberPickerVisible) {
-        Dialog(onDismissRequest = { numberPickerVisible = !numberPickerVisible }) {
-            Card(
-                modifier = modifier.fillMaxWidth(0.8f),
-                shape = MaterialTheme.shapes.extraLarge,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                )
+        NumberPickerDialog(
+            numOfReminders,
+            visibilityChange = { numberPickerVisible = !numberPickerVisible },
+            numOfRemindersChanged = { numOfRemindersChanged(it) }
+        )
+    }
+}
+
+@Composable
+fun NumberPickerDialog(
+    numOfReminders: String,
+    visibilityChange: () -> Unit,
+    numOfRemindersChanged: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var selectedValue by remember { mutableStateOf(numOfReminders) }
+    Dialog(onDismissRequest = visibilityChange) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            )
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
             ) {
-                NumberPickerComposable()
+                Text(text = stringResource(R.string.choose_number_of_reminders),
+                    textAlign = TextAlign.Start,
+                    style = Typography.labelLarge,
+                    fontFamily = Montserrat,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+                NumberPickerComposable(
+                    preselectedValue = numOfReminders,
+                    updateValue = { selectedValue = it },
+                    modifier = Modifier.padding(vertical = 24.dp)
+                )
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(
+                        onClick = {
+                            visibilityChange()
+                        },
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Text(text = stringResource(R.string.cancel), fontFamily = Montserrat)
+                    }
+                    TextButton(
+                        onClick = {
+                            visibilityChange()
+                            numOfRemindersChanged(selectedValue)
+                        }
+                    ) {
+                        Text(text = stringResource(R.string.ok), fontFamily = Montserrat)
+                    }
+                }
             }
         }
     }
@@ -193,8 +252,11 @@ fun NumberOfAlarmTextField(
 
 @Composable
 fun NumberPickerComposable(
+    preselectedValue: String,
+    updateValue: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val primaryColor = MaterialTheme.colorScheme.primary
     AndroidView(
         modifier = modifier,
         factory = { context ->
@@ -202,18 +264,17 @@ fun NumberPickerComposable(
                 layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
                 minValue = 1
                 maxValue = 10
-                displayedValues = Array<String>(10){"${it+1}"}
+                this.value = preselectedValue.toInt()
+                wrapSelectorWheel = false
+                displayedValues = Array<String>(10){"${it+1}."}
+                setOnValueChangedListener { _, oldValue, newValue ->
+                    updateValue(newValue.toString())
+                }
             }
         },
-        update = {view ->
-            println(view.value)
+        update = {
         }
     )
-}
-
-private fun isNumOfRemindersValid(value: String): Boolean {
-    return value.isNotEmpty() && value.isDigitsOnly() &&
-            value.toInt() in 1..10
 }
 
 //@Preview(showSystemUi = true, name = "PIXEL 4", device = Devices.PIXEL_4)
