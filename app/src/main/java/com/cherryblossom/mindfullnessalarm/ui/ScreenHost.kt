@@ -1,5 +1,9 @@
 package com.cherryblossom.mindfullnessalarm.ui
 
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.LinearLayout
+import android.widget.NumberPicker
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,8 +15,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,6 +40,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cherryblossom.mindfullnessalarm.R
@@ -49,15 +59,15 @@ fun ScreenHost(viewModel: MainViewModel = viewModel(), modifier: Modifier = Modi
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top,
-        modifier = Modifier.padding(horizontal = 12.dp)
-            .fillMaxWidth()
-            .fillMaxHeight(0.7f)
+        modifier = Modifier.fillMaxSize()
             .clickable(
                 interactionSource = interactionSource,
                 indication = null
             ) {
                 focusManager.clearFocus()
             }
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 12.dp)
     ) {
         Spacer(modifier = Modifier.fillMaxHeight(0.05f))
         DescriptionText(modifier = Modifier.fillMaxWidth()
@@ -67,24 +77,28 @@ fun ScreenHost(viewModel: MainViewModel = viewModel(), modifier: Modifier = Modi
             .padding(16.dp)
         )
         Spacer(modifier = Modifier.fillMaxHeight(0.05f))
-        TextFields(
-            startTime = mainUiState.startTime,
-            endTime = mainUiState.endTime,
-            numOfReminders = mainUiState.numberOfReminders,
-            startTimeChanged = { hour: Int, minute: Int ->
-                viewModel.startTimeChanged(
-                    hour,
-                    minute
-                )
-            },
-            endTimeChanged = { hour: Int, minute: Int ->
-                viewModel.endTimeChanged(
-                    hour,
-                    minute
-                )
-            },
-            numOfRemindersChanged = {viewModel.numberOfRemindersChanged(it)},
-            modifier = Modifier.fillMaxWidth().align(Alignment.Start)
+        Text(
+            text = stringResource(R.string.guidelines),
+            modifier = modifier
+        )
+        Spacer(modifier = Modifier.fillMaxHeight(0.025f))
+        TimeTextField(
+            time = mainUiState.startTime,
+            timeChanged = {hour: Int, minute: Int -> viewModel.startTimeChanged(hour, minute)},
+            stringResource(R.string.set_earliest_time),
+            modifier = modifier
+        )
+        Spacer(modifier = Modifier.fillMaxHeight(0.05f))
+        TimeTextField(
+            time = mainUiState.endTime,
+            timeChanged = {hour: Int, minute: Int -> viewModel.endTimeChanged(hour, minute )},
+            stringResource(R.string.set_latest_time),
+            modifier = modifier
+        )
+        Spacer(modifier = Modifier.fillMaxHeight(0.05f))
+        NumberOfAlarmTextField(
+            mainUiState.numberOfReminders,
+            numOfRemindersChanged = {viewModel.numberOfRemindersChanged(it)}
         )
     }
 }
@@ -105,40 +119,53 @@ fun DescriptionText(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun TextFields(
-    startTime: TimeOfDay,
-    endTime: TimeOfDay,
-    numOfReminders: String,
-    startTimeChanged: (Int, Int) -> Unit,
-    endTimeChanged: (Int, Int) -> Unit,
-    numOfRemindersChanged: (String) -> Unit,
+fun TimeTextField(
+    time: TimeOfDay,
+    timeChanged: (Int, Int) -> Unit,
+    label: String,
     modifier: Modifier = Modifier
 ) {
-    var startTimeDialogVisible by remember { mutableStateOf(false) }
-    var endTimeDialogVisible by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
-    Text(
-        text = stringResource(R.string.guidelines),
-        modifier = modifier
+    var dialogVisible by remember { mutableStateOf(false) }
+    AdjustableBorderOutlinedTextField(
+        text = time.toString(),
+        onValueChange = {},
+        modifier = Modifier
+            .fillMaxWidth(),
+        label = label,
+        onClick = {
+            dialogVisible = !dialogVisible
+            focusManager.clearFocus()
+        },
+        enabled = false,
+        readOnly = true
     )
-    Spacer(modifier = Modifier.fillMaxHeight(0.025f))
-    TimeTextField(
-        startTime = startTime,
-        startTimeChanged = startTimeChanged,
-        modifier = modifier
-    )
-    Spacer(modifier = Modifier.fillMaxHeight(0.05f))
-    TimeTextField(
-        startTime = endTime,
-        startTimeChanged = endTimeChanged,
-        modifier = modifier
-    )
-    Spacer(modifier = Modifier.fillMaxHeight(0.05f))
+    if (dialogVisible) {
+        PickTimeDialog(
+            label,
+            onDismissRequest = { dialogVisible = false },
+            onAcceptRequest = fun (hour: Int, minute: Int) {
+                timeChanged(hour, minute)
+                dialogVisible = false
+            },
+            time
+        )
+    }
+}
+
+@Composable
+fun NumberOfAlarmTextField(
+    numOfReminders: String,
+    numOfRemindersChanged: (String) -> Unit,
+) {
+    var numberPickerVisible by remember { mutableStateOf(false) }
     AdjustableBorderOutlinedTextField(
         text = numOfReminders,
         label = stringResource(R.string.choose_number_of_reminders),
+        enabled = false,
+        readOnly = true,
         onClick = {
-            endTimeDialogVisible = !endTimeDialogVisible
+            numberPickerVisible = !numberPickerVisible
         },
         onValueChange = fun (value: String) { numOfRemindersChanged(value) },
         isError = !isNumOfRemindersValid(numOfReminders),
@@ -146,40 +173,37 @@ fun TextFields(
         modifier = Modifier
             .fillMaxWidth()
     )
+    if (numberPickerVisible) {
+        Dialog(onDismissRequest = { numberPickerVisible = !numberPickerVisible }) {
+            Card(
+                modifier = Modifier.fillMaxWidth(0.8f),
+                shape = MaterialTheme.shapes.extraLarge,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                )
+            ) {
+                NumberPickerComposable()
+            }
+        }
+    }
 }
 
 @Composable
-fun TimeTextField(
-    startTime: TimeOfDay,
-    startTimeChanged: (Int, Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val focusManager = LocalFocusManager.current
-    var startTimeDialogVisible by remember { mutableStateOf(false) }
-    AdjustableBorderOutlinedTextField(
-        text = startTime.toString(),
-        onValueChange = {},
-        modifier = Modifier
-            .fillMaxWidth(),
-        label = stringResource(R.string.set_earliest_time),
-        onClick = {
-            startTimeDialogVisible = !startTimeDialogVisible
-            focusManager.clearFocus()
+fun NumberPickerComposable() {
+    AndroidView(
+        modifier = Modifier,
+        factory = { context ->
+            NumberPicker(context).apply {
+                layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                minValue = 1
+                maxValue = 10
+                displayedValues = Array<String>(10){"${it+1}"}
+            }
         },
-        enabled = false,
-        readOnly = true
+        update = {view ->
+            println(view.value)
+        }
     )
-    if (startTimeDialogVisible) {
-        PickTimeDialog(
-            stringResource(R.string.set_earliest_time),
-            onDismissRequest = { startTimeDialogVisible = false },
-            onAcceptRequest = fun (hour: Int, minute: Int) {
-                startTimeChanged(hour, minute)
-                startTimeDialogVisible = false
-            },
-            startTime
-        )
-    }
 }
 
 private fun isNumOfRemindersValid(value: String): Boolean {
