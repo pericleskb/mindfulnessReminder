@@ -13,4 +13,7 @@
     <string name="guidelines">Select the timeframe for your reminders</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="update_reminders">Update reminders</string>
+    <string name="turn_reminders_off">Turn reminders off</string>
+    <string name="turn_reminders_on">Turn reminders on</string>
 </resources>

@@ -6,8 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,8 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,7 +23,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,21 +35,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.chargemap.compose.numberpicker.NumberPicker
 import com.cherryblossom.mindfullnessalarm.R
 import com.cherryblossom.mindfullnessalarm.models.TimeOfDay
 import com.cherryblossom.mindfullnessalarm.ui.composables.dialogs.NumberPickerDialog
 import com.cherryblossom.mindfullnessalarm.ui.composables.dialogs.PickTimeDialog
-import com.cherryblossom.mindfullnessalarm.ui.composables.text.AdjustableBorderOutlinedTextField
+import com.cherryblossom.mindfullnessalarm.ui.composables.text.OutlinedTextFieldWithBorder
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
 import com.cherryblossom.mindfullnessalarm.ui.theme.Montserrat
-import com.cherryblossom.mindfullnessalarm.ui.theme.Typography
 
 @Composable
-fun ScreenHost(viewModel: MainViewModel = viewModel(),
-               modifier: Modifier = Modifier) {
+fun ScreenHost(modifier: Modifier = Modifier) {
+    Column(
+        modifier = Modifier.fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        TopOfScreen()
+        Spacer(modifier = Modifier.weight(1f))
+        BottomButton()
+    }
+
+}
+
+@Composable
+fun TopOfScreen(viewModel: MainViewModel = viewModel(),
+                modifier: Modifier = Modifier) {
     val mainUiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -65,14 +73,13 @@ fun ScreenHost(viewModel: MainViewModel = viewModel(),
             ) {
                 focusManager.clearFocus()
             }
-            .verticalScroll(rememberScrollState())
             .padding(horizontal = 12.dp)
     ) {
         Spacer(modifier = Modifier.height(32.dp))
         DescriptionText(modifier = Modifier.fillMaxWidth()
             .align(Alignment.Start)
             .border(2.dp, MaterialTheme.colorScheme.onSurfaceVariant, RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.inversePrimary, RoundedCornerShape(8.dp))//todo add brush
+            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))//todo add brush
             .padding(16.dp)
         )
         Spacer(modifier = Modifier.height(32.dp))
@@ -104,6 +111,61 @@ fun ScreenHost(viewModel: MainViewModel = viewModel(),
 }
 
 @Composable
+fun BottomButton(viewModel: MainViewModel = viewModel(),
+                modifier: Modifier = Modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Bottom,
+        modifier = Modifier.fillMaxWidth()
+            .padding(horizontal = 12.dp)
+            .fillMaxHeight()
+    ) {
+        TextButton(
+            onClick = {},
+            colors = ButtonDefaults.buttonColors().copy(
+                containerColor = MaterialTheme.colorScheme.inversePrimary
+            ),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier
+                .padding(vertical = 24.dp)
+                .fillMaxWidth()
+                .border(3.dp,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
+                    RoundedCornerShape(8.dp))
+                .height(64.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.update_reminders),
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                fontSize = 18.sp,
+                fontFamily = Montserrat
+            )
+        }
+        TextButton(
+            onClick = {},
+            colors = ButtonDefaults.buttonColors().copy(
+                containerColor = MaterialTheme.colorScheme.inversePrimary
+            ),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp)
+                .border(3.dp,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
+                    RoundedCornerShape(8.dp))
+                .height(64.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.turn_reminders_on),
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                fontSize = 18.sp,
+                fontFamily = Montserrat
+            )
+        }
+    }
+}
+
+@Composable
 fun DescriptionText(modifier: Modifier = Modifier) {
     Text(
         text = stringResource(R.string.app_description),
@@ -127,7 +189,7 @@ fun TimeTextField(
 ) {
     val focusManager = LocalFocusManager.current
     var dialogVisible by remember { mutableStateOf(false) }
-    AdjustableBorderOutlinedTextField(
+    OutlinedTextFieldWithBorder(
         text = time.toString(),
         onValueChange = {},
         modifier = modifier
@@ -160,7 +222,7 @@ fun NumberOfAlarmsTextField(
     modifier: Modifier = Modifier
 ) {
     var numberPickerVisible by remember { mutableStateOf(false) }
-    AdjustableBorderOutlinedTextField(
+    OutlinedTextFieldWithBorder(
         text = numOfReminders.toString(),
         label = stringResource(R.string.choose_number_of_reminders),
         enabled = false,

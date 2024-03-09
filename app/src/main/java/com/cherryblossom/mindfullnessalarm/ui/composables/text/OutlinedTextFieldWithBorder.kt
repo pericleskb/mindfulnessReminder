@@ -42,7 +42,7 @@ import com.cherryblossom.mindfullnessalarm.ui.theme.Montserrat
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdjustableBorderOutlinedTextField(
+fun OutlinedTextFieldWithBorder(
     text: String = "",
     label: String = "",
     onClick: () -> Unit,
@@ -140,7 +140,7 @@ fun AdjustableBorderOutlinedTextField(
 @Composable
 fun editText() {
     MindfullnessAlarmTheme {
-        AdjustableBorderOutlinedTextField(
+        OutlinedTextFieldWithBorder(
             text = "09:00",
             label = stringResource(R.string.set_latest_time),
             onClick = {},
