@@ -42,6 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.chargemap.compose.numberpicker.NumberPicker
 import com.cherryblossom.mindfullnessalarm.R
 import com.cherryblossom.mindfullnessalarm.models.TimeOfDay
+import com.cherryblossom.mindfullnessalarm.ui.composables.dialogs.NumberPickerDialog
 import com.cherryblossom.mindfullnessalarm.ui.composables.dialogs.PickTimeDialog
 import com.cherryblossom.mindfullnessalarm.ui.composables.text.AdjustableBorderOutlinedTextField
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
@@ -177,71 +178,6 @@ fun NumberOfAlarmsTextField(
             visibilityChange = { numberPickerVisible = !numberPickerVisible },
             numOfRemindersChanged = { numOfRemindersChanged(it) }
         )
-    }
-}
-
-@Composable
-fun NumberPickerDialog(
-    numOfReminders: Int,
-    visibilityChange: () -> Unit,
-    numOfRemindersChanged: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var selectedValue by remember { mutableIntStateOf(numOfReminders) }
-    Dialog(onDismissRequest = visibilityChange) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(),
-            shape = MaterialTheme.shapes.extraLarge,
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            )
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
-            ) {
-                Text(text = stringResource(R.string.choose_number_of_reminders),
-                    textAlign = TextAlign.Start,
-                    style = Typography.labelLarge,
-                    fontFamily = Montserrat,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 36.dp))
-                NumberPicker(
-                    value = selectedValue,
-                    range =  1..10,
-                    onValueChange = { selectedValue = it },
-                    dividersColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textStyle = TextStyle(
-                        fontFamily = Montserrat,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 14.sp
-                    )
-                )
-                Row(
-                    horizontalArrangement = Arrangement.End,
-                    modifier = Modifier.fillMaxWidth().padding(top = 32.dp)
-                ) {
-                    TextButton(
-                        onClick = {
-                            visibilityChange()
-                        },
-                        modifier = Modifier.padding(end = 8.dp)
-                    ) {
-                        Text(text = stringResource(R.string.cancel), fontFamily = Montserrat)
-                    }
-                    TextButton(
-                        onClick = {
-                            visibilityChange()
-                            numOfRemindersChanged(selectedValue)
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.ok), fontFamily = Montserrat)
-                    }
-                }
-            }
-        }
     }
 }
 
