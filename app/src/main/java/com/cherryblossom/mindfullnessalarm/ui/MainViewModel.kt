@@ -163,12 +163,7 @@ class MainViewModel(
             timeToStart.get(Calendar.HOUR_OF_DAY),
             timeToStart.get(Calendar.MINUTE))
         val content = "Time now = ${TimeOfDay.timeOfDayNow()} - Next schedule time: $triggerTimeOfDay ${timeToStart.get(Calendar.DAY_OF_MONTH)}\\${timeToStart.get(Calendar.MONTH) + 1} \n"
-        val prefSettings = context.getSharedPreferences(
-            "ReminderLogUri",
-            Context.MODE_PRIVATE
-        )
-        val uri = Uri.parse(prefSettings.getString("scheduleLogs.txt", ""))
-        WriteFileDelegate(context).appendToFile(uri, content)
+        WriteFileDelegate(context).appendToFile(AlarmUtils.URI, content)
     }
 }
 
