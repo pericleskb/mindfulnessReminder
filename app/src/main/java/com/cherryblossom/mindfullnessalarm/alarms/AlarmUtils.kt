@@ -21,25 +21,31 @@ class AlarmUtils {
         suspend fun scheduleAlarms(context: Context) {
             val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val repository = UserPreferencesRepository(context.dataStore)
-
             val userPreferences = repository.getCurrentPreferences()
-            getAlarmIntervals(userPreferences).forEachIndexed { index, interval ->
-                WriteFileDelegate(context).appendToFile(URI, "$interval - ")
-                if (timeInBoundaries(userPreferences, interval)) {
-                    setUpAlarm(context, alarmManager, interval, index)
-                }
-            }
-        }
 
-        private fun getAlarmIntervals(userPreferences: UserPreferences): ArrayList<Long> {
             val startTime = TimeOfDay(userPreferences.startHour, userPreferences.startMinute)
             val endTime = TimeOfDay(userPreferences.endHour, userPreferences.endMinute)
-            val firstAlarmDelay = calculateFirstAlarmDelay(startTime, endTime)
             val evenDistributionMs = calculateEvenDistributionMs(startTime, endTime, userPreferences.remindersPerDay)
+
+            getAlarmIntervals(startTime, endTime, evenDistributionMs, userPreferences.remindersPerDay)
+                .forEachIndexed { index, interval ->
+                    WriteFileDelegate(context).appendToFile(URI, "$interval - ")
+                    if (timeInBoundaries(userPreferences, interval)) {
+                        setUpAlarm(context, alarmManager, interval, evenDistributionMs, index)
+                    }
+                }
+        }
+
+        private fun getAlarmIntervals(startTime: TimeOfDay,
+                                      endTime: TimeOfDay,
+                                      evenDistributionMs: Long,
+                                      remindersPerDay: Int
+        ): ArrayList<Long> {
+            val firstAlarmDelay = calculateFirstAlarmDelay(startTime, endTime)
 
             val intervalsList = arrayListOf<Long>()
             intervalsList.add(firstAlarmDelay) //+ evenDistributionMs)
-            for (i in 1 until userPreferences.remindersPerDay) {
+            for (i in 1 until remindersPerDay) {
                 val interval = firstAlarmDelay + (i * evenDistributionMs)
                 intervalsList.add(
                     interval
@@ -87,17 +93,21 @@ class AlarmUtils {
             return (calendarEndTime.timeInMillis - calendarStartTime.timeInMillis) / numberOfAlarms
         }
 
-        private fun setUpAlarm(context: Context, alarmManager: AlarmManager,
-                               triggerAfterMillis: Long, index: Int) {
+        private fun setUpAlarm(context: Context,
+                               alarmManager: AlarmManager,
+                               triggerAfterMillis: Long,
+                               evenDistributionMs: Long,
+                               index: Int) {
             val alarmIntent = Intent(context, RingAlarmReceiver::class.java).let { intent ->
                 PendingIntent.getBroadcast(context, index, intent, PendingIntent.FLAG_IMMUTABLE)
             }
             val triggerAt = SystemClock.elapsedRealtime() + triggerAfterMillis
             //TODO consider using setWindow() instead of setExact to reduce resources consumption
             try {
-                alarmManager.setExact(
-                    AlarmManager.ELAPSED_REALTIME,
+                alarmManager.setWindow(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
                     triggerAt,
+                    evenDistributionMs,
                     alarmIntent
                 )
                 logAlarmTime(context, triggerAfterMillis)
