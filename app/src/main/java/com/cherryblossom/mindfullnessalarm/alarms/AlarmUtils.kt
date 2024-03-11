@@ -101,7 +101,7 @@ class AlarmUtils {
             val alarmIntent = Intent(context, RingAlarmReceiver::class.java).let { intent ->
                 PendingIntent.getBroadcast(context, index, intent, PendingIntent.FLAG_IMMUTABLE)
             }
-            val triggerAt = SystemClock.elapsedRealtime() + triggerAfterMillis
+            val triggerAt = SystemClock.elapsedRealtime() + (index * triggerAfterMillis)
             //TODO consider using setWindow() instead of setExact to reduce resources consumption
             try {
                 alarmManager.setWindow(
