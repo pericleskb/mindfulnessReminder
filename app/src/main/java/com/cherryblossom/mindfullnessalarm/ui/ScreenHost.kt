@@ -1,5 +1,7 @@
 package com.cherryblossom.mindfullnessalarm.ui
 
+import android.app.Application
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -37,12 +40,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cherryblossom.mindfullnessalarm.R
-import com.cherryblossom.mindfullnessalarm.models.TimeOfDay
+import com.cherryblossom.mindfullnessalarm.data.repositories.UserPreferencesRepository
+import com.cherryblossom.mindfullnessalarm.data.models.TimeOfDay
 import com.cherryblossom.mindfullnessalarm.ui.composables.dialogs.NumberPickerDialog
 import com.cherryblossom.mindfullnessalarm.ui.composables.dialogs.PickTimeDialog
 import com.cherryblossom.mindfullnessalarm.ui.composables.text.OutlinedTextFieldWithBorder
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
 import com.cherryblossom.mindfullnessalarm.ui.theme.Montserrat
+import com.cherryblossom.mindfullnessalarm.dataStore
 
 @Composable
 fun ScreenHost(modifier: Modifier = Modifier) {
@@ -50,15 +55,19 @@ fun ScreenHost(modifier: Modifier = Modifier) {
         modifier = Modifier.fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        TopOfScreen()
+        val viewModel: MainViewModel = viewModel(factory = MainViewModelFactory(
+            LocalContext.current.applicationContext as Application,
+            UserPreferencesRepository(LocalContext.current.dataStore)
+        ))
+        TopOfScreen(viewModel)
         Spacer(modifier = Modifier.weight(1f))
-        BottomButton()
+        BottomButton(viewModel)
     }
 
 }
 
 @Composable
-fun TopOfScreen(viewModel: MainViewModel = viewModel(),
+fun TopOfScreen(viewModel: MainViewModel,
                 modifier: Modifier = Modifier) {
     val mainUiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
@@ -111,8 +120,9 @@ fun TopOfScreen(viewModel: MainViewModel = viewModel(),
 }
 
 @Composable
-fun BottomButton(viewModel: MainViewModel = viewModel(),
+fun BottomButton(viewModel: MainViewModel,
                 modifier: Modifier = Modifier) {
+    val mainUiState by viewModel.uiState.collectAsState()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom,
@@ -120,29 +130,33 @@ fun BottomButton(viewModel: MainViewModel = viewModel(),
             .padding(horizontal = 12.dp)
             .fillMaxHeight()
     ) {
-        TextButton(
-            onClick = {},
-            colors = ButtonDefaults.buttonColors().copy(
-                containerColor = MaterialTheme.colorScheme.inversePrimary
-            ),
-            shape = RoundedCornerShape(8.dp),
-            modifier = Modifier
-                .padding(vertical = 24.dp)
-                .fillMaxWidth()
-                .border(3.dp,
-                    MaterialTheme.colorScheme.onPrimaryContainer,
-                    RoundedCornerShape(8.dp))
-                .height(64.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.update_reminders),
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                fontSize = 18.sp,
-                fontFamily = Montserrat
-            )
+        //Update reminders button
+        AnimatedVisibility(mainUiState.isEnabled && mainUiState.preferencesChanged) {
+            TextButton(
+                onClick = {viewModel.updateReminders()},
+                colors = ButtonDefaults.buttonColors().copy(
+                    containerColor = MaterialTheme.colorScheme.inversePrimary
+                ),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier
+                    .padding(vertical = 24.dp)
+                    .fillMaxWidth()
+                    .border(3.dp,
+                        MaterialTheme.colorScheme.onPrimaryContainer,
+                        RoundedCornerShape(8.dp))
+                    .height(64.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.update_reminders),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontSize = 18.sp,
+                    fontFamily = Montserrat
+                )
+            }
         }
+        //Enable disable feature button
         TextButton(
-            onClick = {},
+            onClick = { viewModel.onOffChanged() },
             colors = ButtonDefaults.buttonColors().copy(
                 containerColor = MaterialTheme.colorScheme.inversePrimary
             ),
@@ -156,7 +170,8 @@ fun BottomButton(viewModel: MainViewModel = viewModel(),
                 .height(64.dp)
         ) {
             Text(
-                text = stringResource(R.string.turn_reminders_on),
+                text = if (mainUiState.isEnabled) stringResource(R.string.turn_reminders_off) else
+                    stringResource(R.string.turn_reminders_on),
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontSize = 18.sp,
                 fontFamily = Montserrat

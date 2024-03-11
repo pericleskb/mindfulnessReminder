@@ -1,5 +1,6 @@
 package com.cherryblossom.mindfullnessalarm
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,10 +13,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.datastore.preferences.preferencesDataStore
+import com.cherryblossom.mindfullnessalarm.ui.MainUiState
 import com.cherryblossom.mindfullnessalarm.ui.ScreenHost
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
 
+
+val Context.dataStore by preferencesDataStore(name = MainUiState.USER_PREFERENCES_NAME)
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
