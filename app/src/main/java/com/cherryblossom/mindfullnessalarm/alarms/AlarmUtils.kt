@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.SystemClock
+import androidx.compose.ui.platform.LocalContext
 import com.cherryblossom.mindfullnessalarm.WriteFileDelegate
 import com.cherryblossom.mindfullnessalarm.broadcastReceivers.RingAlarmReceiver
 import com.cherryblossom.mindfullnessalarm.data.models.TimeOfDay
@@ -17,21 +18,25 @@ import java.util.Calendar
 class AlarmUtils {
     companion object {
 
-        val URI: Uri = Uri.parse("ReminderLogUri")
         suspend fun scheduleAlarms(context: Context) {
             val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val repository = UserPreferencesRepository(context.dataStore)
             val userPreferences = repository.getCurrentPreferences()
 
+            val logFileUri = userPreferences.logFileUri?.let {
+                Uri.parse(it)
+            }
             val startTime = TimeOfDay(userPreferences.startHour, userPreferences.startMinute)
             val endTime = TimeOfDay(userPreferences.endHour, userPreferences.endMinute)
             val evenDistributionMs = calculateEvenDistributionMs(startTime, endTime, userPreferences.remindersPerDay)
 
             getAlarmIntervals(startTime, endTime, evenDistributionMs, userPreferences.remindersPerDay)
                 .forEachIndexed { index, interval ->
-                    WriteFileDelegate(context).appendToFile(URI, "$interval - ")
+                    logFileUri?.let {
+                        WriteFileDelegate(context).appendToFile(it, "$interval - ")
+                    }
                     if (timeInBoundaries(userPreferences, interval)) {
-                        setUpAlarm(context, alarmManager, interval, evenDistributionMs, index)
+                        setUpAlarm(context, alarmManager, interval, evenDistributionMs, index, logFileUri)
                     }
                 }
         }
@@ -97,33 +102,43 @@ class AlarmUtils {
                                alarmManager: AlarmManager,
                                triggerAfterMillis: Long,
                                evenDistributionMs: Long,
-                               index: Int) {
+                               index: Int,
+                               logFileUri: Uri?
+        ) {
             val alarmIntent = Intent(context, RingAlarmReceiver::class.java).let { intent ->
                 PendingIntent.getBroadcast(context, index, intent, PendingIntent.FLAG_IMMUTABLE)
             }
             val triggerAt = SystemClock.elapsedRealtime() + (index * triggerAfterMillis)
             //TODO consider using setWindow() instead of setExact to reduce resources consumption
             try {
-                alarmManager.setWindow(
-                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
                     triggerAt,
-                    evenDistributionMs,
                     alarmIntent
                 )
-                logAlarmTime(context, triggerAfterMillis)
+//            try {
+//                alarmManager.setWindow(
+//                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+//                    triggerAt,
+//                    evenDistributionMs,
+//                    alarmIntent
+//                )
+                logFileUri?.let {
+                    logAlarmTime(context, triggerAfterMillis, logFileUri)
+                }
             } catch (e: SecurityException) {
 
             }
         }
 
-        private fun logAlarmTime(context: Context, triggerAt: Long) {
+        private fun logAlarmTime(context: Context, triggerAt: Long, logFileUri: Uri) {
             val triggerDate = Calendar.getInstance()
             triggerDate.timeInMillis = System.currentTimeMillis() + triggerAt
             val triggerTimeOfDay = TimeOfDay(
                 triggerDate.get(Calendar.HOUR_OF_DAY),
                 triggerDate.get(Calendar.MINUTE))
             val content = "Alarm scheduled for $triggerTimeOfDay\n"
-            WriteFileDelegate(context).appendToFile(URI, content)
+            WriteFileDelegate(context).appendToFile(logFileUri, content)
         }
 
         private fun timeInBoundaries(userPreferences: UserPreferences, triggerAfterMillis: Long): Boolean {

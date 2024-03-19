@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 class SetupRemindersReceiver: BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent?) {
+        println("@@set up reminders receiver@")
         val scope = CoroutineScope(Job() + Dispatchers.Default)
         scope.launch {
             AlarmUtils.scheduleAlarms(context)

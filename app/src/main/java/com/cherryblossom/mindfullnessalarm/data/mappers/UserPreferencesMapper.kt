@@ -20,6 +20,7 @@ fun MainUiState.toUserPreferences(): UserPreferences {
         endHour = endTime.hour,
         endMinute = endTime.minute,
         remindersPerDay = numberOfReminders,
-        enabled = isEnabled
+        enabled = isEnabled,
+        logFileUri = null
     )
 }

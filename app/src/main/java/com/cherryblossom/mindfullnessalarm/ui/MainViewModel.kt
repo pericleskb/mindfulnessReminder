@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.SystemClock
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -144,26 +145,37 @@ class MainViewModel(
 
             val delay = timeToStart.timeInMillis - System.currentTimeMillis()
             val triggerAt = SystemClock.elapsedRealtime() + delay
+            println("@@ delay - $delay")
             try {
-                alarmManager.setInexactRepeating(
-                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                    triggerAt,
-                    AlarmManager.INTERVAL_DAY,
+                //set scheduling of daily alarms, one hour before start time so that the intent
+                //can be delivered on time
+                timeToStart.add(Calendar.HOUR, -1)
+                alarmManager.setRepeating(
+                    AlarmManager.RTC_WAKEUP,
+                    timeToStart.timeInMillis,
+                    1000 * 60 * 60 * 24,
                     alarmIntent
                 )
                 logNextScheduleTime(context, timeToStart)
             } catch (e: SecurityException) {
-                //TODO permission is off. Maybe show a message in app
+                Log.e("MindlessReminder", e.toString())
             }
         }
     }
 
-    private fun logNextScheduleTime(context: Context, timeToStart: Calendar) {
+    private suspend fun logNextScheduleTime(context: Context, timeToStart: Calendar) {
+        val logFileUri = userPreferencesRepository.getCurrentPreferences().logFileUri ?: return
         val triggerTimeOfDay = TimeOfDay(
             timeToStart.get(Calendar.HOUR_OF_DAY),
             timeToStart.get(Calendar.MINUTE))
         val content = "Time now = ${TimeOfDay.timeOfDayNow()} - Next schedule time: $triggerTimeOfDay ${timeToStart.get(Calendar.DAY_OF_MONTH)}\\${timeToStart.get(Calendar.MONTH) + 1} \n"
-        WriteFileDelegate(context).appendToFile(AlarmUtils.URI, content)
+        WriteFileDelegate(context).appendToFile(Uri.parse(logFileUri), content)
+    }
+
+    fun saveLogFile(uri: Uri) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateLogFileUri(uri.toString())
+        }
     }
 }
 

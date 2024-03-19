@@ -6,5 +6,6 @@ data class UserPreferences(
     val endHour: Int,
     val endMinute: Int,
     val remindersPerDay: Int,
-    val enabled: Boolean
+    val enabled: Boolean,
+    val logFileUri: String?
 )
