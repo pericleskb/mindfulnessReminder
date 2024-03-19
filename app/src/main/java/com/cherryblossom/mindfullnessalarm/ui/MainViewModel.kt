@@ -144,7 +144,6 @@ class MainViewModel(
             }
 
             val delay = timeToStart.timeInMillis - System.currentTimeMillis()
-            val triggerAt = SystemClock.elapsedRealtime() + delay
             println("@@ delay - $delay")
             try {
                 //set scheduling of daily alarms, one hour before start time so that the intent

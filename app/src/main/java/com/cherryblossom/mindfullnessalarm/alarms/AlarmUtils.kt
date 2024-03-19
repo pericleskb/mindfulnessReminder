@@ -108,7 +108,8 @@ class AlarmUtils {
             val alarmIntent = Intent(context, RingAlarmReceiver::class.java).let { intent ->
                 PendingIntent.getBroadcast(context, index, intent, PendingIntent.FLAG_IMMUTABLE)
             }
-            val triggerAt = SystemClock.elapsedRealtime() + (index * triggerAfterMillis)
+            val triggerAt = System.currentTimeMillis() + triggerAfterMillis
+            println(triggerAfterMillis)
             //TODO consider using setWindow() instead of setExact to reduce resources consumption
             try {
                 alarmManager.setExactAndAllowWhileIdle(
@@ -124,7 +125,7 @@ class AlarmUtils {
 //                    alarmIntent
 //                )
                 logFileUri?.let {
-                    logAlarmTime(context, triggerAfterMillis, logFileUri)
+                    logAlarmTime(context, triggerAt, logFileUri)
                 }
             } catch (e: SecurityException) {
 
@@ -133,7 +134,7 @@ class AlarmUtils {
 
         private fun logAlarmTime(context: Context, triggerAt: Long, logFileUri: Uri) {
             val triggerDate = Calendar.getInstance()
-            triggerDate.timeInMillis = System.currentTimeMillis() + triggerAt
+            triggerDate.timeInMillis = triggerAt
             val triggerTimeOfDay = TimeOfDay(
                 triggerDate.get(Calendar.HOUR_OF_DAY),
                 triggerDate.get(Calendar.MINUTE))
