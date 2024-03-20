@@ -1,12 +1,10 @@
 package com.cherryblossom.mindfullnessalarm.utils
 
 import android.app.AlarmManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import com.cherryblossom.mindfullnessalarm.WriteFileDelegate
-import com.cherryblossom.mindfullnessalarm.broadcastReceivers.RingAlarmReceiver
 import com.cherryblossom.mindfullnessalarm.data.models.TimeOfDay
 import com.cherryblossom.mindfullnessalarm.data.models.UserPreferences
 import com.cherryblossom.mindfullnessalarm.data.repositories.UserPreferencesRepository
@@ -16,10 +14,57 @@ import java.util.Calendar
 class AlarmSchedulingUtils {
     companion object {
 
-        suspend fun scheduleAlarms(context: Context) {
-            val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        suspend fun setUpAlarms(context: Context) {
             val repository = UserPreferencesRepository(context.dataStore)
             val userPreferences = repository.getCurrentPreferences()
+            scheduleRepeatingAlarm(context, userPreferences)
+            val startTime = TimeOfDay(userPreferences.startHour, userPreferences.startMinute)
+            val endTime = TimeOfDay(userPreferences.endHour, userPreferences.endMinute)
+            if(TimeOfDay.timeOfDayNow().isBetweenTimes(startTime, endTime)) {
+                scheduleReminders(context, userPreferences)
+            }
+        }
+
+        /**
+         * This schedules a repeating alarm, every day, on start time of the reminders.
+         * This alarm will send an Intent to ScheduleAlarms broadcast receiver. Which will schedule
+         * the alarms for the day
+         */
+        private fun scheduleRepeatingAlarm(context: Context, userPreferences: UserPreferences) {
+            val timeToStart: Calendar = Calendar.getInstance().apply {
+                timeInMillis = System.currentTimeMillis()
+                set(Calendar.HOUR_OF_DAY, userPreferences.startHour)
+                set(Calendar.MINUTE, userPreferences.startMinute)
+            }
+            timeToStart.time//todo check if needed
+            if (Calendar.getInstance().after(timeToStart)) {
+                //First alarm time has passed. Schedule for tomorrow
+                timeToStart.add(Calendar.DATE, 1)
+            }
+
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val alarmIntent = PendingIntentsProvider.getSchedulingPendingIntent(context)
+            val logFileUri = userPreferences.logFileUri?.let {
+                Uri.parse(it)
+            }
+
+            try {
+                alarmManager.setRepeating(
+                    AlarmManager.RTC_WAKEUP,
+                    timeToStart.timeInMillis,
+                    AlarmManager.INTERVAL_DAY,
+                    alarmIntent
+                )
+                logFileUri?.let {
+                    logNextScheduleTime(context, timeToStart, logFileUri)
+                }
+            } catch (e: SecurityException) {
+                Log.e("MindlessReminder", e.toString())
+            }
+        }
+
+        fun scheduleReminders(context: Context, userPreferences: UserPreferences) {
+            val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
             val logFileUri = userPreferences.logFileUri?.let {
                 Uri.parse(it)
@@ -28,21 +73,21 @@ class AlarmSchedulingUtils {
             val endTime = TimeOfDay(userPreferences.endHour, userPreferences.endMinute)
             val evenDistributionMs = calculateEvenDistributionMs(startTime, endTime, userPreferences.remindersPerDay)
 
-            getAlarmIntervals(startTime, endTime, evenDistributionMs, userPreferences.remindersPerDay)
+            getRemindersIntervals(startTime, endTime, evenDistributionMs, userPreferences.remindersPerDay)
                 .forEachIndexed { index, interval ->
                     logFileUri?.let {
                         WriteFileDelegate(context).appendToFile(it, "$interval - ")
                     }
                     if (timeInBoundaries(userPreferences, interval)) {
-                        setUpAlarm(context, alarmManager, interval, evenDistributionMs, index, logFileUri)
+                        setUpReminder(context, alarmManager, interval, evenDistributionMs, index, logFileUri)
                     }
                 }
         }
 
-        private fun getAlarmIntervals(startTime: TimeOfDay,
-                                      endTime: TimeOfDay,
-                                      evenDistributionMs: Long,
-                                      remindersPerDay: Int
+        private fun getRemindersIntervals(startTime: TimeOfDay,
+                                          endTime: TimeOfDay,
+                                          evenDistributionMs: Long,
+                                          remindersPerDay: Int
         ): ArrayList<Long> {
             val firstAlarmDelay = calculateFirstAlarmDelay(startTime, endTime)
 
@@ -96,17 +141,15 @@ class AlarmSchedulingUtils {
             return (calendarEndTime.timeInMillis - calendarStartTime.timeInMillis) / numberOfAlarms
         }
 
-        private fun setUpAlarm(context: Context,
-                               alarmManager: AlarmManager,
-                               triggerAfterMillis: Long,
-                               evenDistributionMs: Long,
-                               index: Int,
-                               logFileUri: Uri?
+        private fun setUpReminder(context: Context,
+                                  alarmManager: AlarmManager,
+                                  triggerAfterMillis: Long,
+                                  evenDistributionMs: Long,
+                                  index: Int,
+                                  logFileUri: Uri?
         ) {
             val alarmIntent = PendingIntentsProvider.getReminderPendingIntent(context, index)
             val triggerAt = System.currentTimeMillis() + triggerAfterMillis
-            println(triggerAfterMillis)
-            //TODO consider using setWindow() instead of setExact to reduce resources consumption
 //            try {
 //                alarmManager.setExactAndAllowWhileIdle(
 //                    AlarmManager.RTC_WAKEUP,
@@ -121,21 +164,11 @@ class AlarmSchedulingUtils {
                     alarmIntent
                 )
                 logFileUri?.let {
-                    logAlarmTime(context, triggerAt, logFileUri)
+                    logReminderTime(context, triggerAt, logFileUri)
                 }
             } catch (e: SecurityException) {
 
             }
-        }
-
-        private fun logAlarmTime(context: Context, triggerAt: Long, logFileUri: Uri) {
-            val triggerDate = Calendar.getInstance()
-            triggerDate.timeInMillis = triggerAt
-            val triggerTimeOfDay = TimeOfDay(
-                triggerDate.get(Calendar.HOUR_OF_DAY),
-                triggerDate.get(Calendar.MINUTE))
-            val content = "Alarm scheduled for $triggerTimeOfDay\n"
-            WriteFileDelegate(context).appendToFile(logFileUri, content)
         }
 
         private fun timeInBoundaries(userPreferences: UserPreferences, triggerAfterMillis: Long): Boolean {
@@ -147,6 +180,24 @@ class AlarmSchedulingUtils {
             return triggerTimeOfDay.isBetweenTimes(
                 TimeOfDay(userPreferences.startHour, userPreferences.startMinute),
                 TimeOfDay(userPreferences.endHour, userPreferences.endMinute))
+        }
+
+        private fun logReminderTime(context: Context, triggerAt: Long, logFileUri: Uri) {
+            val triggerDate = Calendar.getInstance()
+            triggerDate.timeInMillis = triggerAt
+            val triggerTimeOfDay = TimeOfDay(
+                triggerDate.get(Calendar.HOUR_OF_DAY),
+                triggerDate.get(Calendar.MINUTE))
+            val content = "Alarm scheduled for $triggerTimeOfDay\n"
+            WriteFileDelegate(context).appendToFile(logFileUri, content)
+        }
+
+        private fun logNextScheduleTime(context: Context, timeToStart: Calendar, logFileUri: Uri) {
+            val triggerTimeOfDay = TimeOfDay(
+                timeToStart.get(Calendar.HOUR_OF_DAY),
+                timeToStart.get(Calendar.MINUTE))
+            val content = "Time now = ${TimeOfDay.timeOfDayNow()} - Next schedule time: $triggerTimeOfDay ${timeToStart.get(Calendar.DAY_OF_MONTH)}\\${timeToStart.get(Calendar.MONTH) + 1} \n"
+            WriteFileDelegate(context).appendToFile(logFileUri, content)
         }
     }
 }

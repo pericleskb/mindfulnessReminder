@@ -2,9 +2,9 @@ package com.cherryblossom.mindfullnessalarm.ui
 
 import android.app.AlarmManager
 import android.app.Application
-import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
@@ -12,8 +12,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.cherryblossom.mindfullnessalarm.WriteFileDelegate
+import com.cherryblossom.mindfullnessalarm.broadcastReceivers.BootReceiver
 import com.cherryblossom.mindfullnessalarm.utils.AlarmSchedulingUtils
-import com.cherryblossom.mindfullnessalarm.broadcastReceivers.SetupRemindersReceiver
 import com.cherryblossom.mindfullnessalarm.data.mappers.toUserPreferences
 import com.cherryblossom.mindfullnessalarm.data.repositories.UserPreferencesRepository
 import com.cherryblossom.mindfullnessalarm.data.models.TimeOfDay
@@ -83,12 +83,11 @@ class MainViewModel(
                 preferencesChanged = false
             )
         }
-        //todo cancel previous alarms
         viewModelScope.launch {
             userPreferencesRepository.updatePreferences(
                 _uiState.value.toUserPreferences()
             )
-            setUpAlarms(userPreferencesRepository.getCurrentPreferences())
+            AlarmSchedulingUtils.setUpAlarms(getApplication<Application>().applicationContext)
         }
     }
 
@@ -99,83 +98,41 @@ class MainViewModel(
                 preferencesChanged = false
             )
         }
+        setBootReceiverState(uiState.value.isEnabled)
+        val context = getApplication<Application>().applicationContext
         viewModelScope.launch {
             userPreferencesRepository.updatePreferences(_uiState.value.toUserPreferences())
             if (uiState.value.isEnabled) {
-                setUpAlarms(userPreferencesRepository.getCurrentPreferences())
+                AlarmSchedulingUtils.setUpAlarms(context)
             } else {
-                val context = getApplication<Application>().applicationContext
-                val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                alarmManager.cancel(PendingIntentsProvider.getSchedulingPendingIntent(context))
-                for (i in 0..9)
-                    alarmManager.cancel(PendingIntentsProvider.getReminderPendingIntent(context, i))
+                cancelAlarms(context)
             }
         }
     }
 
-    private suspend fun setUpAlarms(userPreferences: UserPreferences) {
-        scheduleRepeatingAlarm()
-
-        val startTime = TimeOfDay(userPreferences.startHour, userPreferences.startMinute)
-        val endTime = TimeOfDay(userPreferences.endHour, userPreferences.endMinute)
-        if(TimeOfDay.timeOfDayNow().isBetweenTimes(startTime, endTime)) {
-            AlarmSchedulingUtils.scheduleAlarms(getApplication<Application>().applicationContext)
-        }
-    }
-
-    /**
-     * This schedules a repeating alarm, every day, on start time of the reminders.
-     * This alarm will send an Intent to ScheduleAlarms broadcast receiver. Which will schedule
-     * the alarms for the day
-     */
-    private fun scheduleRepeatingAlarm() {
-        viewModelScope.launch {
-            val userPreferences = userPreferencesRepository.getCurrentPreferences()
-
-            val timeToStart: Calendar = Calendar.getInstance().apply {
-                timeInMillis = System.currentTimeMillis()
-                set(Calendar.HOUR_OF_DAY, userPreferences.startHour)
-                set(Calendar.MINUTE, userPreferences.startMinute)
-            }
-            timeToStart.time//todo check if needed
-            if (Calendar.getInstance().after(timeToStart)) {
-                //First alarm time has passed. Schedule for tomorrow
-                timeToStart.add(Calendar.DATE, 1)
-            }
-
-            val context = getApplication<Application>().applicationContext
-            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            val alarmIntent = PendingIntentsProvider.getSchedulingPendingIntent(context)
-
-            val delay = timeToStart.timeInMillis - System.currentTimeMillis()
-            println("@@ delay - $delay")
-            try {
-                alarmManager.setRepeating(
-                    AlarmManager.RTC_WAKEUP,
-                    timeToStart.timeInMillis,
-                    AlarmManager.INTERVAL_HOUR,
-                    alarmIntent
-                )
-                logNextScheduleTime(context, timeToStart)
-            } catch (e: SecurityException) {
-                Log.e("MindlessReminder", e.toString())
-            }
-        }
-    }
-
-    private suspend fun logNextScheduleTime(context: Context, timeToStart: Calendar) {
-        val logFileUri = userPreferencesRepository.getCurrentPreferences().logFileUri ?: return
-        val triggerTimeOfDay = TimeOfDay(
-            timeToStart.get(Calendar.HOUR_OF_DAY),
-            timeToStart.get(Calendar.MINUTE))
-        val content = "Time now = ${TimeOfDay.timeOfDayNow()} - Next schedule time: $triggerTimeOfDay ${timeToStart.get(Calendar.DAY_OF_MONTH)}\\${timeToStart.get(Calendar.MONTH) + 1} \n"
-        WriteFileDelegate(context).appendToFile(Uri.parse(logFileUri), content)
+    private fun cancelAlarms(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.cancel(PendingIntentsProvider.getSchedulingPendingIntent(context))
+        for (i in 0..9)
+            alarmManager.cancel(PendingIntentsProvider.getReminderPendingIntent(context, i))
     }
 
     fun saveLogFile(uri: Uri) {
         viewModelScope.launch {
             userPreferencesRepository.updateLogFileUri(uri.toString())
         }
+    }
+
+    private fun setBootReceiverState(enabled: Boolean) {
+        val state = if (enabled) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        val context = getApplication<Application>().applicationContext
+        val receiver = ComponentName(context, BootReceiver::class.java)
+        context.packageManager.setComponentEnabledSetting(
+            receiver,
+            state,
+            PackageManager.DONT_KILL_APP
+        )
     }
 }
 
