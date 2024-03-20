@@ -6,19 +6,19 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.SystemClock
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.cherryblossom.mindfullnessalarm.WriteFileDelegate
-import com.cherryblossom.mindfullnessalarm.alarms.AlarmUtils
+import com.cherryblossom.mindfullnessalarm.utils.AlarmSchedulingUtils
 import com.cherryblossom.mindfullnessalarm.broadcastReceivers.SetupRemindersReceiver
 import com.cherryblossom.mindfullnessalarm.data.mappers.toUserPreferences
 import com.cherryblossom.mindfullnessalarm.data.repositories.UserPreferencesRepository
 import com.cherryblossom.mindfullnessalarm.data.models.TimeOfDay
 import com.cherryblossom.mindfullnessalarm.data.models.UserPreferences
+import com.cherryblossom.mindfullnessalarm.utils.PendingIntentsProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -104,7 +104,11 @@ class MainViewModel(
             if (uiState.value.isEnabled) {
                 setUpAlarms(userPreferencesRepository.getCurrentPreferences())
             } else {
-                //todo cancel
+                val context = getApplication<Application>().applicationContext
+                val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                alarmManager.cancel(PendingIntentsProvider.getSchedulingPendingIntent(context))
+                for (i in 0..9)
+                    alarmManager.cancel(PendingIntentsProvider.getReminderPendingIntent(context, i))
             }
         }
     }
@@ -115,7 +119,7 @@ class MainViewModel(
         val startTime = TimeOfDay(userPreferences.startHour, userPreferences.startMinute)
         val endTime = TimeOfDay(userPreferences.endHour, userPreferences.endMinute)
         if(TimeOfDay.timeOfDayNow().isBetweenTimes(startTime, endTime)) {
-            AlarmUtils.scheduleAlarms(getApplication<Application>().applicationContext)
+            AlarmSchedulingUtils.scheduleAlarms(getApplication<Application>().applicationContext)
         }
     }
 
@@ -128,9 +132,11 @@ class MainViewModel(
         viewModelScope.launch {
             val userPreferences = userPreferencesRepository.getCurrentPreferences()
 
-            val timeToStart = Calendar.getInstance()
-            timeToStart.set(Calendar.HOUR_OF_DAY, userPreferences.startHour)
-            timeToStart.set(Calendar.MINUTE, userPreferences.startMinute)
+            val timeToStart: Calendar = Calendar.getInstance().apply {
+                timeInMillis = System.currentTimeMillis()
+                set(Calendar.HOUR_OF_DAY, userPreferences.startHour)
+                set(Calendar.MINUTE, userPreferences.startMinute)
+            }
             timeToStart.time//todo check if needed
             if (Calendar.getInstance().after(timeToStart)) {
                 //First alarm time has passed. Schedule for tomorrow
@@ -139,20 +145,15 @@ class MainViewModel(
 
             val context = getApplication<Application>().applicationContext
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            val alarmIntent = Intent(context, SetupRemindersReceiver::class.java).let { intent ->
-                PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-            }
+            val alarmIntent = PendingIntentsProvider.getSchedulingPendingIntent(context)
 
             val delay = timeToStart.timeInMillis - System.currentTimeMillis()
             println("@@ delay - $delay")
             try {
-                //set scheduling of daily alarms, one hour before start time so that the intent
-                //can be delivered on time
-                timeToStart.add(Calendar.HOUR, -1)
                 alarmManager.setRepeating(
                     AlarmManager.RTC_WAKEUP,
                     timeToStart.timeInMillis,
-                    1000 * 60 * 60 * 24,
+                    AlarmManager.INTERVAL_HOUR,
                     alarmIntent
                 )
                 logNextScheduleTime(context, timeToStart)

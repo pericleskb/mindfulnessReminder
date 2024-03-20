@@ -1,12 +1,10 @@
-package com.cherryblossom.mindfullnessalarm.alarms
+package com.cherryblossom.mindfullnessalarm.utils
 
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.SystemClock
-import androidx.compose.ui.platform.LocalContext
 import com.cherryblossom.mindfullnessalarm.WriteFileDelegate
 import com.cherryblossom.mindfullnessalarm.broadcastReceivers.RingAlarmReceiver
 import com.cherryblossom.mindfullnessalarm.data.models.TimeOfDay
@@ -15,7 +13,7 @@ import com.cherryblossom.mindfullnessalarm.data.repositories.UserPreferencesRepo
 import com.cherryblossom.mindfullnessalarm.dataStore
 import java.util.Calendar
 
-class AlarmUtils {
+class AlarmSchedulingUtils {
     companion object {
 
         suspend fun scheduleAlarms(context: Context) {
@@ -105,25 +103,23 @@ class AlarmUtils {
                                index: Int,
                                logFileUri: Uri?
         ) {
-            val alarmIntent = Intent(context, RingAlarmReceiver::class.java).let { intent ->
-                PendingIntent.getBroadcast(context, index, intent, PendingIntent.FLAG_IMMUTABLE)
-            }
+            val alarmIntent = PendingIntentsProvider.getReminderPendingIntent(context, index)
             val triggerAt = System.currentTimeMillis() + triggerAfterMillis
             println(triggerAfterMillis)
             //TODO consider using setWindow() instead of setExact to reduce resources consumption
-            try {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerAt,
-                    alarmIntent
-                )
 //            try {
-//                alarmManager.setWindow(
-//                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+//                alarmManager.setExactAndAllowWhileIdle(
+//                    AlarmManager.RTC_WAKEUP,
 //                    triggerAt,
-//                    evenDistributionMs,
 //                    alarmIntent
 //                )
+            try {
+                alarmManager.setWindow(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerAt,
+                    evenDistributionMs,
+                    alarmIntent
+                )
                 logFileUri?.let {
                     logAlarmTime(context, triggerAt, logFileUri)
                 }
