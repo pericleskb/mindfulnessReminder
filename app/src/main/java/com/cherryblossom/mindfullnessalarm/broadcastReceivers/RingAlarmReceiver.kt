@@ -33,7 +33,7 @@ class RingAlarmReceiver: BroadcastReceiver() {
         try {
             val sound =
                 Uri.parse((ContentResolver.SCHEME_ANDROID_RESOURCE + "://" +
-                        context.packageName)+ "/" + R.raw.ting)
+                        context.packageName)+ "/" + R.raw.ringtone1)
             ringtone = RingtoneManager.getRingtone(context, sound)
             ringtone?.play()
         } catch (e: Exception) {
@@ -41,7 +41,7 @@ class RingAlarmReceiver: BroadcastReceiver() {
         }
 
 //        context.applicationContext.let { context ->
-//            mediaPlayer = MediaPlayer.create(context, R.raw.ting).apply {
+//            mediaPlayer = MediaPlayer.create(context, R.raw.ringtone1).apply {
 //                setAudioAttributes(
 //                    AudioAttributes.Builder()
 //                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
