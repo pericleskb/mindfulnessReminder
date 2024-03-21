@@ -42,9 +42,9 @@ class MainViewModel(
                         startTime = TimeOfDay(startHour, startMinute),
                         endTime = TimeOfDay(endHour, endMinute),
                         numberOfReminders = remindersPerDay,
-                        isEnabled = enabled
+                        isEnabled = enabled,
+                        splashScreenVisible = false
                     )
-                    //when this done hide loading screen
                 }
             }
         }
@@ -83,6 +83,7 @@ class MainViewModel(
                 preferencesChanged = false
             )
         }
+        //todo cancel previous alarms
         viewModelScope.launch {
             userPreferencesRepository.updatePreferences(
                 _uiState.value.toUserPreferences()

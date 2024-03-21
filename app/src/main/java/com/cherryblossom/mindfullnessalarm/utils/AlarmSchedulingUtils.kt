@@ -150,19 +150,19 @@ class AlarmSchedulingUtils {
         ) {
             val alarmIntent = PendingIntentsProvider.getReminderPendingIntent(context, index)
             val triggerAt = System.currentTimeMillis() + triggerAfterMillis
-//            try {
-//                alarmManager.setExactAndAllowWhileIdle(
-//                    AlarmManager.RTC_WAKEUP,
-//                    triggerAt,
-//                    alarmIntent
-//                )
             try {
-                alarmManager.setWindow(
+                alarmManager.setExactAndAllowWhileIdle(
                     AlarmManager.RTC_WAKEUP,
                     triggerAt,
-                    evenDistributionMs,
                     alarmIntent
                 )
+//            try {
+//                alarmManager.setWindow(
+//                    AlarmManager.RTC_WAKEUP,
+//                    triggerAt,
+//                    evenDistributionMs,
+//                    alarmIntent
+//                )
                 logFileUri?.let {
                     logReminderTime(context, triggerAt, logFileUri)
                 }

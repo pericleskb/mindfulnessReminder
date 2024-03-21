@@ -1,18 +1,19 @@
 package com.cherryblossom.mindfullnessalarm.ui
 
-import android.app.Activity
 import android.app.Application
 import android.content.Intent
 import android.net.Uri
-import android.widget.ToggleButton
+import android.window.SplashScreen
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -30,7 +31,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -59,37 +60,42 @@ import com.cherryblossom.mindfullnessalarm.dataStore
 
 @Composable
 fun ScreenHost(modifier: Modifier = Modifier) {
+    val viewModel: MainViewModel = viewModel(factory = MainViewModelFactory(
+        LocalContext.current.applicationContext as Application,
+        UserPreferencesRepository(LocalContext.current.dataStore)
+    ))
     Column(
         modifier = Modifier.fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        val viewModel: MainViewModel = viewModel(factory = MainViewModelFactory(
-            LocalContext.current.applicationContext as Application,
-            UserPreferencesRepository(LocalContext.current.dataStore)
-        ))
-
-        var logFileCheched by remember { mutableStateOf(false) }
-        val result = remember { mutableStateOf<Uri?>(null) }
-        val launcher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(mimeType = "text/plain")) {
-            result.value = it
-        }
-        result.value?.let { uri ->
-            val contentResolver = LocalContext.current.applicationContext?.contentResolver
-            val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            contentResolver?.takePersistableUriPermission(uri, takeFlags)
-            viewModel.saveLogFile(uri);
-        }
-        Switch(checked = logFileCheched,
-            onCheckedChange = { logFileCheched = !logFileCheched
-                if (logFileCheched) {
-                    launcher.launch("mindfulllogs.txt")
-                }}
-        )
+        TestSwitch(viewModel)
         TopOfScreen(viewModel)
         Spacer(modifier = Modifier.weight(1f))
         BottomButton(viewModel)
     }
+}
+
+//TODO enable only on debug builds?
+@Composable
+fun TestSwitch(viewModel: MainViewModel) {
+    var logFileChecked by remember { mutableStateOf(false) }
+    val result = remember { mutableStateOf<Uri?>(null) }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(mimeType = "text/plain")) {
+        result.value = it
+    }
+    result.value?.let { uri ->
+        val contentResolver = LocalContext.current.applicationContext?.contentResolver
+        val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        contentResolver?.takePersistableUriPermission(uri, takeFlags)
+        viewModel.saveLogFile(uri);
+    }
+    Switch(checked = logFileChecked,
+        onCheckedChange = { logFileChecked = !logFileChecked
+            if (logFileChecked) {
+                launcher.launch("mindfulllogs.txt")
+            }}
+    )
 }
 
 @Composable
