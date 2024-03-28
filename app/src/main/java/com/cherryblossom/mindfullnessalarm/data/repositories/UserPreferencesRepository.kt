@@ -64,7 +64,7 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val startMinute = preferences[PreferencesKeys.START_MINUTE] ?: 0
         val endHour = preferences[PreferencesKeys.END_HOUR] ?: 0
         val endMinute = preferences[PreferencesKeys.END_MINUTE] ?: 0
-        val remindersPerDay = preferences[PreferencesKeys.REMINDERS_PER_DAY] ?: 0
+        val remindersPerDay = preferences[PreferencesKeys.REMINDERS_PER_DAY] ?: 3
         val enabled = preferences[PreferencesKeys.ENABLED] ?: false
         val logFileUri = preferences[PreferencesKeys.LOG_FILE_URI]
         return UserPreferences(
