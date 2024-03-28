@@ -10,6 +10,7 @@ import com.cherryblossom.mindfullnessalarm.data.models.UserPreferences
 import com.cherryblossom.mindfullnessalarm.data.repositories.UserPreferencesRepository
 import com.cherryblossom.mindfullnessalarm.dataStore
 import java.util.Calendar
+import java.util.concurrent.ThreadLocalRandom
 
 class AlarmSchedulingUtils {
     companion object {
@@ -79,7 +80,7 @@ class AlarmSchedulingUtils {
                         WriteFileDelegate(context).appendToFile(it, "$interval - ")
                     }
                     if (timeInBoundaries(userPreferences, interval)) {
-                        setUpReminder(context, alarmManager, interval, evenDistributionMs, index, logFileUri)
+                        setUpReminder(context, alarmManager, interval, index, logFileUri)
                     }
                 }
         }
@@ -89,12 +90,14 @@ class AlarmSchedulingUtils {
                                           evenDistributionMs: Long,
                                           remindersPerDay: Int
         ): ArrayList<Long> {
-            val firstAlarmDelay = calculateFirstAlarmDelay(startTime, endTime)
+            var firstAlarmDelay = calculateFirstAlarmDelay(startTime, endTime)
+            firstAlarmDelay += addRandomDelay(evenDistributionMs, 0.83f)
 
             val intervalsList = arrayListOf<Long>()
-            intervalsList.add(firstAlarmDelay) //+ evenDistributionMs)
+            intervalsList.add(firstAlarmDelay)
             for (i in 1 until remindersPerDay) {
-                val interval = firstAlarmDelay + (i * evenDistributionMs)
+                val percentage = if (i == remindersPerDay - 1) 1f else 0.83f
+                val interval = firstAlarmDelay + (i * evenDistributionMs) + addRandomDelay(evenDistributionMs, percentage)
                 intervalsList.add(
                     interval
                 )
@@ -144,7 +147,6 @@ class AlarmSchedulingUtils {
         private fun setUpReminder(context: Context,
                                   alarmManager: AlarmManager,
                                   triggerAfterMillis: Long,
-                                  evenDistributionMs: Long,
                                   index: Int,
                                   logFileUri: Uri?
         ) {
@@ -156,13 +158,6 @@ class AlarmSchedulingUtils {
                     triggerAt,
                     alarmIntent
                 )
-//            try {
-//                alarmManager.setWindow(
-//                    AlarmManager.RTC_WAKEUP,
-//                    triggerAt,
-//                    evenDistributionMs,
-//                    alarmIntent
-//                )
                 logFileUri?.let {
                     logReminderTime(context, triggerAt, logFileUri)
                 }
@@ -199,10 +194,10 @@ class AlarmSchedulingUtils {
             val content = "Time now = ${TimeOfDay.timeOfDayNow()} - Next schedule time: $triggerTimeOfDay ${timeToStart.get(Calendar.DAY_OF_MONTH)}\\${timeToStart.get(Calendar.MONTH) + 1} \n"
             WriteFileDelegate(context).appendToFile(logFileUri, content)
         }
+
+        private fun addRandomDelay(evenDistribution: Long, percentage: Float): Long {
+            return ThreadLocalRandom.current().nextLong(0, (percentage * evenDistribution).toLong())
+        }
     }
 }
 
-
-//private fun generateFirstInterval(evenDistribution: Long): Long {
-//    return ThreadLocalRandom.current().nextLong(minValue, (0.83 * evenDistribution).toLong())
-//}
