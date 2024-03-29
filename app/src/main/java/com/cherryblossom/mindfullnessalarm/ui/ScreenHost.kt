@@ -1,7 +1,9 @@
 package com.cherryblossom.mindfullnessalarm.ui
 
+import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -42,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import com.cherryblossom.mindfullnessalarm.R
 import com.cherryblossom.mindfullnessalarm.data.models.TimeOfDay
 import com.cherryblossom.mindfullnessalarm.ui.composables.dialogs.NumberPickerDialog
@@ -49,6 +52,7 @@ import com.cherryblossom.mindfullnessalarm.ui.composables.dialogs.PickTimeDialog
 import com.cherryblossom.mindfullnessalarm.ui.composables.text.OutlinedTextFieldWithBorder
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
 import com.cherryblossom.mindfullnessalarm.ui.theme.Montserrat
+
 
 @Composable
 fun ScreenHost(viewModel: MainViewModel, modifier: Modifier = Modifier) {
@@ -60,6 +64,18 @@ fun ScreenHost(viewModel: MainViewModel, modifier: Modifier = Modifier) {
         TopOfScreen(viewModel)
         Spacer(modifier = Modifier.weight(1f))
         BottomButton(viewModel)
+//        val manufacturer = "xiaomi"
+//        if (manufacturer.equals(Build.MANUFACTURER, ignoreCase = true)) {
+//            //this will open auto start screen where user can enable permission for your app
+//            val intent = Intent()
+//            intent.setComponent(
+//                ComponentName(
+//                    "com.miui.securitycenter",
+//                    "com.miui.permcenter.autostart.AutoStartManagementActivity"
+//                )
+//            )
+//            LocalContext.current.startActivity(intent)
+//        }
     }
 }
 

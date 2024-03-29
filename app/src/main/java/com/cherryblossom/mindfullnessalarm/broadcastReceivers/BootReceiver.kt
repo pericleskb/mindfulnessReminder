@@ -12,7 +12,8 @@ import kotlinx.coroutines.launch
 class BootReceiver: BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == "android.intent.action.BOOT_COMPLETED") {
+        if (intent.action.equals("android.intent.action.BOOT_COMPLETED", true) ||
+            intent.action.equals("android.intent.action.QUICKBOOT_POWERON", true)) {
             CoroutineScope(Job() + Dispatchers.Default).launch {
                 AlarmSchedulingUtils.setUpAlarms(context)
             }
