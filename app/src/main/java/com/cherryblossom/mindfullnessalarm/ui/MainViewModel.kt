@@ -33,6 +33,7 @@ class MainViewModel(
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState>
         get() = _uiState.asStateFlow()
+    var isReady = false;
 
     init {
         viewModelScope.launch {
@@ -46,6 +47,7 @@ class MainViewModel(
                         splashScreenVisible = false
                     )
                 }
+                isReady = true
             }
         }
     }

@@ -1,19 +1,15 @@
 package com.cherryblossom.mindfullnessalarm.ui
 
-import android.app.Application
 import android.content.Intent
 import android.net.Uri
-import android.window.SplashScreen
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -40,30 +36,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cherryblossom.mindfullnessalarm.R
-import com.cherryblossom.mindfullnessalarm.data.repositories.UserPreferencesRepository
 import com.cherryblossom.mindfullnessalarm.data.models.TimeOfDay
 import com.cherryblossom.mindfullnessalarm.ui.composables.dialogs.NumberPickerDialog
 import com.cherryblossom.mindfullnessalarm.ui.composables.dialogs.PickTimeDialog
 import com.cherryblossom.mindfullnessalarm.ui.composables.text.OutlinedTextFieldWithBorder
 import com.cherryblossom.mindfullnessalarm.ui.theme.MindfullnessAlarmTheme
 import com.cherryblossom.mindfullnessalarm.ui.theme.Montserrat
-import com.cherryblossom.mindfullnessalarm.dataStore
 
 @Composable
-fun ScreenHost(modifier: Modifier = Modifier) {
-    val viewModel: MainViewModel = viewModel(factory = MainViewModelFactory(
-        LocalContext.current.applicationContext as Application,
-        UserPreferencesRepository(LocalContext.current.dataStore)
-    ))
+fun ScreenHost(viewModel: MainViewModel, modifier: Modifier = Modifier) {
     Column(
         modifier = Modifier.fillMaxSize()
             .verticalScroll(rememberScrollState())
