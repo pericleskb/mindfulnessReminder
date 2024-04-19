@@ -6,10 +6,10 @@ duration. -->
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/app_icon2</item>
 
-        <item name="postSplashScreenTheme">@style/Theme.MindfullnessAlarm</item>
+        <item name="postSplashScreenTheme">@style/Theme.mindfulnessreminder</item>
     </style>
 
-    <style name="Theme.MindfullnessAlarm" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.mindfulnessreminder" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">
             @android:color/transparent
         </item>

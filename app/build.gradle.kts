@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.cherryblossom.mindfullnessalarm"
+    namespace = "com.cherryblossom.mindfulnessreminder"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.cherryblossom.mindfullnessalarm"
+        applicationId = "com.cherryblossom.mindfulnessreminder"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

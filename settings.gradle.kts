@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Mindfullness Alarm"
+rootProject.name = "Mindfulness Reminder"
 include(":app")
  
