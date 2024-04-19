@@ -8,7 +8,8 @@ data class MainUiState(
     val numberOfReminders: Int = 3,
     val isEnabled: Boolean = false,
     val preferencesChanged: Boolean = false,
-    val splashScreenVisible: Boolean = true
+    val splashScreenVisible: Boolean = true,
+    val showXiaomiRebootScreen: Boolean = false
 ) {
     companion object {
         val USER_PREFERENCES_NAME = "user_preferences"

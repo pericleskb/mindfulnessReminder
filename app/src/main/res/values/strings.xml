@@ -16,4 +16,9 @@
     <string name="update_reminders">Update reminders</string>
     <string name="turn_reminders_off">Turn reminders off</string>
     <string name="turn_reminders_on">Turn reminders on</string>
+    <string name="xiaomi_reboot_title">Enable reboot autostart</string>
+    <string name="xiaomi_reboot_message">In order for the alarms to persist through device reboots on Xiaomi devices,
+         enabling background autostart is required.</string>
+    <string name="xiaomi_reboot_enable">Go to settings</string>
+    <string name="xiaomi_reboot_dismiss">Dismiss</string>
 </resources>

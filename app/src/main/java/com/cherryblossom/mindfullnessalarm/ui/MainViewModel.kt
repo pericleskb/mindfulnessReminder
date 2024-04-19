@@ -6,25 +6,22 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.util.Log
+import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.cherryblossom.mindfullnessalarm.WriteFileDelegate
 import com.cherryblossom.mindfullnessalarm.broadcastReceivers.BootReceiver
 import com.cherryblossom.mindfullnessalarm.utils.AlarmSchedulingUtils
 import com.cherryblossom.mindfullnessalarm.data.mappers.toUserPreferences
 import com.cherryblossom.mindfullnessalarm.data.repositories.UserPreferencesRepository
 import com.cherryblossom.mindfullnessalarm.data.models.TimeOfDay
-import com.cherryblossom.mindfullnessalarm.data.models.UserPreferences
 import com.cherryblossom.mindfullnessalarm.utils.PendingIntentsProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Calendar
 
 class MainViewModel(
     application: Application,
@@ -85,7 +82,7 @@ class MainViewModel(
                 preferencesChanged = false
             )
         }
-        //todo cancel previous alarms
+       cancelAlarms(getApplication<Application>().applicationContext)
         viewModelScope.launch {
             userPreferencesRepository.updatePreferences(
                 _uiState.value.toUserPreferences()
@@ -94,23 +91,31 @@ class MainViewModel(
         }
     }
 
-    fun onOffChanged(): Unit {
-        _uiState.update { currentState ->
-            currentState.copy(
-                isEnabled = !currentState.isEnabled,
-                preferencesChanged = false
-            )
-        }
-        setBootReceiverState(uiState.value.isEnabled)
-        val context = getApplication<Application>().applicationContext
+    fun onOffChanged() {
         viewModelScope.launch {
+            val shouldShowXiaomiReboot = userPreferencesRepository.getCurrentPreferences().firstTimeEnabling && isXiaomi()
+            _uiState.update { currentState ->
+                currentState.copy(
+                    isEnabled = !currentState.isEnabled,
+                    preferencesChanged = false,
+                    showXiaomiRebootScreen = shouldShowXiaomiReboot
+                )
+            }
             userPreferencesRepository.updatePreferences(_uiState.value.toUserPreferences())
+            userPreferencesRepository.updateFirstTimeEnabling(false)
+            setBootReceiverState(uiState.value.isEnabled)
+            val context = getApplication<Application>().applicationContext
             if (uiState.value.isEnabled) {
                 AlarmSchedulingUtils.setUpAlarms(context)
             } else {
                 cancelAlarms(context)
             }
         }
+    }
+
+    private fun isXiaomi(): Boolean {
+        val manufacturer = "xiaomi"
+        return manufacturer.equals(Build.MANUFACTURER, ignoreCase = true)
     }
 
     private fun cancelAlarms(context: Context) {
@@ -136,6 +141,14 @@ class MainViewModel(
             state,
             PackageManager.DONT_KILL_APP
         )
+    }
+
+    fun disableXiaomiDialog() {
+        _uiState.update { currentState ->
+            currentState.copy(
+                showXiaomiRebootScreen = false
+            )
+        }
     }
 }
 

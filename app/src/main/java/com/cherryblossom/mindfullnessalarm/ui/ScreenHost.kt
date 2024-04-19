@@ -3,7 +3,6 @@ package com.cherryblossom.mindfullnessalarm.ui
 import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -22,7 +21,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -44,7 +45,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.startActivity
 import com.cherryblossom.mindfullnessalarm.R
 import com.cherryblossom.mindfullnessalarm.data.models.TimeOfDay
 import com.cherryblossom.mindfullnessalarm.ui.composables.dialogs.NumberPickerDialog
@@ -64,18 +64,6 @@ fun ScreenHost(viewModel: MainViewModel, modifier: Modifier = Modifier) {
         TopOfScreen(viewModel)
         Spacer(modifier = Modifier.weight(1f))
         BottomButton(viewModel)
-//        val manufacturer = "xiaomi"
-//        if (manufacturer.equals(Build.MANUFACTURER, ignoreCase = true)) {
-//            //this will open auto start screen where user can enable permission for your app
-//            val intent = Intent()
-//            intent.setComponent(
-//                ComponentName(
-//                    "com.miui.securitycenter",
-//                    "com.miui.permcenter.autostart.AutoStartManagementActivity"
-//                )
-//            )
-//            LocalContext.current.startActivity(intent)
-//        }
     }
 }
 
@@ -169,7 +157,7 @@ fun BottomButton(viewModel: MainViewModel,
         //Update reminders button
         AnimatedVisibility(mainUiState.isEnabled && mainUiState.preferencesChanged) {
             TextButton(
-                onClick = {viewModel.updateReminders()},
+                onClick = { viewModel.updateReminders() },
                 colors = ButtonDefaults.buttonColors().copy(
                     containerColor = MaterialTheme.colorScheme.inversePrimary
                 ),
@@ -213,7 +201,71 @@ fun BottomButton(viewModel: MainViewModel,
                 fontFamily = Montserrat
             )
         }
+
     }
+    xiaomiRebootNotification(viewModel)
+}
+
+@Composable
+fun xiaomiRebootNotification(viewModel: MainViewModel,
+                             modifier: Modifier = Modifier) {
+    val mainUiState by viewModel.uiState.collectAsState()
+    var showRebootSettings by remember { mutableStateOf(false) }
+    if (mainUiState.showXiaomiRebootScreen) {
+        XiaomiRebootDialog (onDismissRequest = {
+            viewModel.disableXiaomiDialog()
+        },
+        onEnable = {
+            viewModel.disableXiaomiDialog()
+            showRebootSettings = true
+        })
+    }
+    if (showRebootSettings) {
+        //this will open auto start screen where user can enable permission for your app
+        val intent = Intent()
+        intent.setComponent(
+            ComponentName(
+                "com.miui.securitycenter",
+                "com.miui.permcenter.autostart.AutoStartManagementActivity"
+            )
+        )
+        LocalContext.current.startActivity(intent)
+        showRebootSettings = false
+    }
+}
+
+@Composable
+fun XiaomiRebootDialog(
+    onDismissRequest: () -> Unit,
+    onEnable: () -> Unit,
+) {
+    AlertDialog(
+        title = {
+            Text(text = stringResource(R.string.xiaomi_reboot_title))
+        },
+        text = {
+            Text(text = stringResource(R.string.xiaomi_reboot_message))
+        },
+        onDismissRequest = {
+            onDismissRequest()
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onEnable() }
+            ) {
+                Text(stringResource(R.string.xiaomi_reboot_enable))
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onDismissRequest()
+                }
+            ) {
+                Text(stringResource(R.string.xiaomi_reboot_dismiss))
+            }
+        }
+    )
 }
 
 @Composable
